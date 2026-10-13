@@ -60,6 +60,14 @@ button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
 .seg div.on{background:var(--red);color:#fff}
 .avpick{width:96px;height:96px;border-radius:50%;border:2px dashed var(--bd);display:flex;align-items:center;justify-content:center;text-align:center;margin:8px auto 14px;cursor:pointer;overflow:hidden;color:var(--mut);font-size:.75rem;font-weight:700;line-height:1.4;text-transform:none}
 .avpick img{width:100%;height:100%;object-fit:cover}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd)}
+.srow:last-child{border-bottom:0;padding-bottom:0}
+.sw{width:50px;height:28px;border-radius:14px;background:#37474f;position:relative;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--green)}.sw.on::after{left:25px}
+.stat{display:inline-block;padding:4px 12px;border-radius:12px;font-size:.8rem;font-weight:800}
+.stat.go{background:rgba(0,200,83,.15);color:var(--green)}.stat.stop{background:rgba(213,0,0,.15);color:#ff5252}
+.sub{font-size:.75rem;color:var(--mut);text-transform:uppercase;font-weight:800;letter-spacing:.04em;margin:18px 0 8px;padding-top:14px;border-top:1px solid var(--bd)}
 .banner{background:linear-gradient(90deg,#e2001a,#8a0010);padding:12px;border-radius:8px;font-weight:800;text-align:center;text-transform:uppercase;margin-bottom:12px}
 .lb{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd);font-size:.95rem}
 .lb:last-child{border:0}.lb .n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -208,37 +216,44 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     </div>
 
     <!-- ADMIN -->
-    <div id="page-admin" class="hidden"><div class="card" style="border-top:4px solid var(--orange)">
-      <h2>👑 Admin</h2>
-      <p>Status: <b id="admin-race-status">-</b></p>
-      <label for="admin-race">Rennnummer</label>
-      <input id="admin-race" placeholder="z. B. 1" maxlength="10">
-      <div class="row"><button class="b" style="background:var(--green)" data-act="openRace">Öffnen</button>
-        <button class="b" style="background:#d50000" data-act="closeRace">Schließen</button></div>
+    <div id="page-admin" class="hidden">
+      <div class="card" style="border-top:4px solid var(--orange)">
+        <h2>🏁 Rennen</h2>
+        <div class="srow" style="padding-top:0"><span class="mut">Status</span><b id="admin-race-status" class="stat stop">–</b></div>
+        <label for="admin-race">Rennnummer</label>
+        <input id="admin-race" placeholder="z. B. 1" maxlength="10">
+        <div class="row"><button class="b" style="background:var(--green)" data-act="openRace">▶ Öffnen</button>
+          <button class="b" style="background:#d50000" data-act="closeRace">■ Schließen</button></div>
+      </div>
 
-      <h3>Spieler wählen</h3>
-      <select id="adm-user"></select>
-      <label>🍻 Bier-Ex Ergebnis (gilt für das offene Rennen)</label>
-      <div class="row"><button class="s w" data-act="ex" data-m="2">🏆 2x</button><button class="s l" data-act="ex" data-m="0.5">❌ 0,5x</button><button class="s" data-act="ex" data-m="1">🔄 Reset</button></div>
-      <label>Guthaben ändern um (€, auch negativ)</label>
-      <input type="number" inputmode="decimal" step="0.01" id="adm-delta" placeholder="z. B. -2">
-      <input id="adm-note" placeholder="Grund (optional)" maxlength="40">
-      <label style="cursor:pointer;color:#fff;display:flex;gap:8px;align-items:center;text-transform:none;margin:0 0 12px"><input type="checkbox" id="adm-nopay" style="width:18px;height:18px;margin:0"> Nur Guthaben (nicht in die Auszahlung)</label>
-      <div class="row"><button class="s u" data-act="adjust">Buchen</button><button class="s l" data-act="adjust" data-v="-2" data-n="Strafe">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="0.8" data-n="Bier-Bonus">+0,80 € Bier</button></div>
+      <div class="card">
+        <h2>👤 Spieler-Aktionen</h2>
+        <label for="adm-user" style="margin-top:0">Spieler wählen</label>
+        <select id="adm-user"></select>
 
-      <h3>Party-Modi</h3><div id="mode-btns"></div>
+        <div class="sub" style="margin-top:4px">🍻 Bier-Ex (gilt für das offene Rennen)</div>
+        <div class="row"><button class="s w" data-act="ex" data-m="2">🏆 2x</button><button class="s l" data-act="ex" data-m="0.5">❌ 0,5x</button><button class="s" data-act="ex" data-m="1">🔄 Reset</button></div>
 
-      <h3>🍺 Not-Einkauf-Challenge</h3>
-      <p>Challenger: <b id="buy-chal-adm">–</b></p>
-      <p class="mut" style="font-size:.8rem">Oben den Spieler wählen und festlegen. Nur er darf die Uhr starten, sie läuft bei allen mit.</p>
-      <div class="row"><button class="s w" data-act="buyAssign">Challenger festlegen</button><button class="s l" data-act="buyReset">Zurücksetzen</button></div>
+        <div class="sub">💶 Guthaben buchen</div>
+        <input type="number" inputmode="decimal" step="0.01" id="adm-delta" placeholder="Betrag in € (auch negativ), z. B. -2">
+        <input id="adm-note" placeholder="Grund (optional)" maxlength="40">
+        <label style="cursor:pointer;color:#fff;display:flex;gap:8px;align-items:center;text-transform:none;margin:0 0 12px"><input type="checkbox" id="adm-nopay" style="width:18px;height:18px;margin:0"> Nur Guthaben (nicht in die Auszahlung)</label>
+        <div class="row"><button class="s u" data-act="adjust">Buchen</button><button class="s l" data-act="adjust" data-v="-2" data-n="Strafe">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="0.8" data-n="Bier-Bonus">+0,80 € Bier</button></div>
 
-      <h3>💶 Auszahlungen</h3><div id="payouts"></div>
+        <div class="sub">🍺 Not-Einkauf-Challenger</div>
+        <p style="margin-bottom:8px">Aktuell: <b id="buy-chal-adm">–</b></p>
+        <div class="row"><button class="s w" data-act="buyAssign">Festlegen</button><button class="s l" data-act="buyReset">Zurücksetzen</button></div>
+        <p class="mut" style="font-size:.75rem;margin-top:8px">Nur der Challenger darf die Uhr starten, sie läuft bei allen mit.</p>
+      </div>
 
-      <h3>Registrierung</h3>
-      <p>Status: <b id="reg-status">-</b></p>
-      <div class="row"><button class="s l" data-act="regLock">🔒 Sperren</button><button class="s w" data-act="regOpen">🔓 Öffnen</button></div>
-    </div></div>
+      <div class="card"><h2>🎛️ Party-Modi</h2><div id="mode-btns"></div></div>
+
+      <div class="card"><h2>💶 Auszahlungen</h2><div id="payouts"></div></div>
+
+      <div class="card"><h2>🔒 Registrierung</h2>
+        <div class="srow"><span id="reg-status" style="font-size:.9rem">–</span><button id="reg-switch" class="sw on" data-act="regLock" aria-label="Registrierung offen"></button></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -373,7 +388,8 @@ onSnapshot(doc(db, "settings", "registration"), s => {
   regLocked = s.exists() && s.data().locked === true;
   $("reg-lock").classList.toggle("hidden", !regLocked);
   $("btn-register").disabled = regLocked;
-  $("reg-status").textContent = regLocked ? "GESPERRT – niemand kann sich neu registrieren" : "OFFEN";
+  $("reg-status").textContent = regLocked ? "Gesperrt – niemand kann sich neu registrieren" : "Offen – neue Spieler können sich registrieren";
+  $("reg-switch").classList.toggle("on", !regLocked); $("reg-switch").dataset.act = regLocked ? "regOpen" : "regLock";
 }, () => {});
 async function onUser(user) {
   // Konten ohne Spieler-Dokument (z. B. bei gesperrter Registrierung) werden direkt abgemeldet
@@ -471,7 +487,8 @@ function renderRace() {
     : `<p style="color:var(--red);font-weight:700">🔴 Aktuell ist kein Rennen geöffnet.</p>`;
   $("race-label").textContent = race.raceNumber ?? "-";
   $("round-title").textContent = open ? "Rennen " + race.raceNumber : "Kein Rennen aktiv";
-  $("admin-race-status").textContent = open ? `Rennen "${race.raceNumber}" ist OFFEN` : "GESCHLOSSEN";
+  $("admin-race-status").textContent = open ? `Rennen "${race.raceNumber}" offen` : "Geschlossen";
+  $("admin-race-status").className = "stat " + (open ? "go" : "stop");
 }
 
 function renderModes() {
@@ -479,9 +496,7 @@ function renderModes() {
   $("team-box").classList.toggle("hidden", !modes.team);
   if (!modes.team) $("bet-team").checked = false;
   $("mode-btns").innerHTML = Object.entries(MODES).map(([k, l]) =>
-    `<label>${esc(l)}: <b>${modes[k] ? "AN" : "AUS"}</b></label><div class="row" style="margin-bottom:8px">
-     <button class="s w" data-act="mode" data-k="${k}" data-v="1">Aktivieren</button>
-     <button class="s l" data-act="mode" data-k="${k}" data-v="0">Deaktivieren</button></div>`).join("");
+    `<div class="srow"><span>${esc(l)}</span><button class="sw ${modes[k] ? "on" : ""}" data-act="mode" data-k="${k}" data-v="${modes[k] ? 0 : 1}" aria-label="${esc(l)}"></button></div>`).join("");
   preview();
 }
 
