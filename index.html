@@ -15,9 +15,14 @@ header{background:#121519;border-bottom:2px solid var(--red);padding:12px 16px;d
 .pill{background:#232931;padding:6px 12px;border-radius:20px;font-size:.85rem;display:flex;gap:10px;align-items:center}
 .pill button{background:none;border:none;color:var(--mut);font-weight:700;font-size:.8rem;cursor:pointer}
 .wrap{max-width:900px;margin:15px auto;padding:0 12px}
-.tabs{display:flex;gap:6px;margin-bottom:16px;background:var(--card);padding:4px;border-radius:8px;border:1px solid var(--bd)}
-.tab{flex:1;padding:10px 4px;text-align:center;border-radius:6px;cursor:pointer;font-weight:700;font-size:.8rem;text-transform:uppercase;color:var(--mut)}
-.tab.on{background:var(--red);color:#fff}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s;z-index:190}
+#overlay.open{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;left:0;bottom:0;width:270px;max-width:80%;background:#121519;border-right:2px solid var(--red);transform:translateX(-100%);transition:transform .25s;z-index:200;display:flex;flex-direction:column;padding:16px 10px;gap:4px;overflow-y:auto}
+#drawer.open{transform:none}
+.dh{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;border-bottom:1px solid var(--bd);margin-bottom:8px}
+.nav{display:block;padding:14px 12px;border-radius:8px;cursor:pointer;font-weight:700;color:var(--mut)}
+.nav.on{background:var(--red);color:#fff}
+.hb{background:none;border:none;font-size:1.6rem;color:#fff;padding:0 12px 0 0;line-height:1}
 .card{background:var(--card);border:1px solid var(--bd);padding:16px;border-radius:10px;margin-bottom:16px}
 .card h2{font-size:1rem;text-transform:uppercase;margin-bottom:12px}
 .card h3{font-size:.95rem;margin:16px 0 8px}
@@ -75,16 +80,22 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">KC KEGELCLUB <span>RACE</span></div>
-    <div class="pill"><span id="me-av"></span><b id="me-name"></b><button data-act="logout">LOGOUT</button></div>
+    <button class="hb" data-act="menu" aria-label="Menü">☰</button>
+    <div class="brand" style="flex:1">KC KEGELCLUB <span>RACE</span></div>
+    <div class="pill"><span id="me-av"></span><b id="me-name"></b></div>
   </header>
+  <div id="overlay" data-act="menuClose"></div>
+  <nav id="drawer">
+    <div class="dh"><span id="dr-av"></span><b id="dr-name"></b></div>
+    <a class="nav on" data-act="nav" data-tab="main">🏇 Wetten</a>
+    <a class="nav" data-act="nav" data-tab="history">📜 Wett-History</a>
+    <a class="nav" data-act="nav" data-tab="stats">📊 Statistik</a>
+    <a class="nav" data-act="nav" data-tab="analytics">📈 Analytics</a>
+    <a class="nav hidden" id="nav-admin" data-act="nav" data-tab="admin">👑 Admin</a>
+    <div style="flex:1"></div>
+    <a class="nav" data-act="logout">🚪 Logout</a>
+  </nav>
   <div class="wrap">
-    <div class="tabs">
-      <div class="tab on" data-act="tab" data-tab="main">🏇 Wetten</div>
-      <div class="tab" data-act="tab" data-tab="history">📜 History &amp; Statistik</div>
-      <div class="tab hidden" id="tab-admin" data-act="tab" data-tab="admin">👑 Admin</div>
-    </div>
-
     <!-- WETTEN -->
     <div id="page-main">
       <div class="card"><h2>🏆 Rangliste</h2><div id="leaderboard"></div></div>
@@ -127,9 +138,17 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     </div>
 
     <!-- HISTORIE -->
-    <div id="page-history" class="hidden">
-      <div class="card"><h2>📊 Statistik</h2><div id="achievements"></div></div>
-      <div class="card"><h2>📜 Alle bisherigen Wetten</h2><div id="history-bets"></div></div></div>
+    <div id="page-history" class="hidden"><div class="card"><h2>📜 Alle bisherigen Wetten</h2><div id="history-bets"></div></div>
+      <div class="card"><h2>💳 Manuelle Buchungen</h2><div id="txn-list"></div></div></div>
+
+    <!-- STATISTIK -->
+    <div id="page-stats" class="hidden"><div class="card"><h2>📊 Statistik</h2><div id="achievements"></div></div></div>
+
+    <!-- ANALYTICS -->
+    <div id="page-analytics" class="hidden">
+      <p class="mut" style="font-size:.8rem;margin-bottom:12px">Guthaben-Verlauf pro Rennen, berechnet aus den Wetten (Start: 10 €). Strafen, Boni und manuelle Buchungen werden dem Rennen zugeordnet, in dem sie gebucht wurden. Ältere Buchungen aus der Zeit vor dem Log erscheinen als letzter Punkt „Jetzt“. Trend = Veränderung der letzten 3 Rennen.</p>
+      <div id="analytics"></div>
+    </div>
 
     <!-- ADMIN -->
     <div id="page-admin" class="hidden"><div class="card" style="border-top:4px solid var(--orange)">
@@ -146,7 +165,8 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
       <div class="row"><button class="s w" data-act="ex" data-m="2">🏆 2x</button><button class="s l" data-act="ex" data-m="0.5">❌ 0,5x</button><button class="s" data-act="ex" data-m="1">🔄 Reset</button></div>
       <label>Guthaben ändern um (€, auch negativ)</label>
       <input type="number" inputmode="decimal" step="0.01" id="adm-delta" placeholder="z. B. -2">
-      <div class="row"><button class="s u" data-act="adjust">Buchen</button><button class="s l" data-act="adjust" data-v="-2">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="1">+1 € Bier</button></div>
+      <input id="adm-note" placeholder="Grund (optional)" maxlength="40">
+      <div class="row"><button class="s u" data-act="adjust">Buchen</button><button class="s l" data-act="adjust" data-v="-2" data-n="Strafe">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="1" data-n="Bier-Bonus">+1 € Bier</button></div>
 
       <h3>Party-Modi</h3><div id="mode-btns"></div>
     </div></div>
@@ -202,7 +222,7 @@ $("avatar").addEventListener("change", async e => {
   catch (err) { toast(err.message, true); e.target.value = ""; p.classList.add("hidden"); }
 });
 
-let me = null, isAdmin = false, users = [], bets = [], race = { isOpen: false, raceNumber: null };
+let me = null, isAdmin = false, users = [], bets = [], txns = [], race = { isOpen: false, raceNumber: null };
 let modes = {}, unsubs = [];
 const openRaces = new Set();
 
@@ -218,21 +238,27 @@ onAuthStateChanged(auth, user => {
   me = user; isAdmin = !!user && user.email === ADMIN_EMAIL;
   $("auth").classList.toggle("hidden", !!user);
   $("app").classList.toggle("hidden", !user);
-  $("tab-admin").classList.toggle("hidden", !isAdmin);
+  $("nav-admin").classList.toggle("hidden", !isAdmin);
   if (!user) return;
   tab("main");
   const L = (ref, fn) => unsubs.push(onSnapshot(ref, fn, e => toast(e.message, true)));
   L(collection(db, "users"), s => { users = s.docs.map(d => ({ id: d.id, ...d.data() })); renderUsers(); });
   L(collection(db, "bets"), s => { bets = s.docs.map(d => ({ id: d.id, ...d.data() })); renderBets(); });
+  L(collection(db, "txns"), s => { txns = s.docs.map(d => ({ id: d.id, ...d.data() })); renderTxns(); renderAnalytics(); });
   L(doc(db, "settings", "race"), s => { race = s.exists() ? s.data() : { isOpen: false }; renderRace(); renderBets(); });
   Object.keys(MODES).forEach(k => L(doc(db, "settings", k), s => { modes[k] = s.exists() && !!s.data().isOpen; renderModes(); }));
 });
 
 /* ---------- Rendering ---------- */
 function tab(t) {
-  document.querySelectorAll(".tab").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
-  ["main", "history", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
+  document.querySelectorAll(".nav[data-tab]").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
+  ["main", "history", "stats", "analytics", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
 }
+function menu(open) {
+  const o = open ?? !$("drawer").classList.contains("open");
+  $("drawer").classList.toggle("open", o); $("overlay").classList.toggle("open", o);
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape") menu(false); });
 
 function renderUsers() {
   const sorted = [...users].sort((a, b) => b.balance - a.balance);
@@ -253,9 +279,10 @@ function renderUsers() {
     box.style.cssText = `margin-bottom:12px;padding:10px;border-radius:6px;font-weight:700;text-align:center;background:${win ? "rgba(0,200,83,.2)" : "rgba(213,0,0,.2)"};border:1px solid ${win ? "#00c853" : "#d50000"};color:${win ? "#00c853" : "#ff5252"}`;
     box.textContent = win ? "🔥 2x BIER-EX BONUS aktiv (nächste Quote verdoppelt)" : "⚠️ 0,5x BIER-EX MALUS aktiv (nächste Quote halbiert)";
   }
-  if (mine) { $("me-name").textContent = uname(mine); $("me-av").innerHTML = av(mine, 24); }
+  if (mine) { $("me-name").textContent = $("dr-name").textContent = uname(mine); $("me-av").innerHTML = av(mine, 24); $("dr-av").innerHTML = av(mine, 36); }
   preview();
   renderAch();
+  renderAnalytics();
 }
 
 function renderRace() {
@@ -303,6 +330,7 @@ function renderBets() {
     <summary>🏁 Rennen ${esc(k)} (${groups[k].length})</summary>${groups[k].map(betCard).join("")}</details>`).join("")
     || `<p class="mut" style="text-align:center">Bisher keine Wetten.</p>`;
   renderAch();
+  renderAnalytics();
 }
 
 function renderAch() {
@@ -330,6 +358,70 @@ function renderAch() {
     pair(tipCell("g", "🎯 Meiste Tipps", true), tipCell("r", "🫥 Wenigste Tipps", false));
 }
 
+function renderTxns() {
+  const ts = t => t.createdAt?.seconds ?? Date.now() / 1000;
+  $("txn-list").innerHTML = [...txns].sort((a, b) => ts(b) - ts(a)).map(t => `<div class="lb"><span>${av(users.find(u => u.id === t.userId), 22)} <b>${esc(t.userName)}</b>
+    <div class="mut" style="font-size:.75rem">${esc(t.note)}${t.raceNumber != null ? " · Rennen " + esc(t.raceNumber) : ""} · ${new Date(ts(t) * 1000).toLocaleDateString("de-DE")}</div></span>
+    <b style="color:${t.delta > 0 ? "var(--green)" : "#ff5252"}">${t.delta > 0 ? "+" : "−"}${eur(Math.abs(t.delta))}</b></div>`).join("")
+    || `<p class="mut">Noch keine Buchungen.</p>`;
+}
+
+/* ---------- Analytics ---------- */
+const raceList = () => [...new Set([...bets.map(b => b.raceNumber), ...txns.map(t => t.raceNumber), race.isOpen ? race.raceNumber : null]
+  .filter(r => r != null).map(String))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+// Guthaben nach jedem Rennen: Start 10 € + Wetten + manuelle Buchungen aus dem Log
+function series(u, races) {
+  const mine = txns.filter(t => t.userId === u.id);
+  let y = 10 + mine.filter(t => t.raceNumber == null).reduce((a, t) => a + t.delta, 0);
+  const pts = [{ x: "Start", y: r2(y) }];
+  races.forEach(r => {
+    bets.filter(b => b.userId === u.id && String(b.raceNumber) === r)
+      .forEach(b => { y += b.status === "gewonnen" ? b.possibleWin - b.amount : -b.amount; });
+    mine.filter(t => String(t.raceNumber) === r).forEach(t => { y += t.delta; });
+    pts.push({ x: r, y: r2(y) });
+  });
+  if (Math.abs(u.balance - y) > 0.005) pts.push({ x: "Jetzt", y: r2(u.balance) });
+  return pts;
+}
+
+function trend(pts) {
+  const d = pts.length < 2 ? 0 : r2(pts[pts.length - 1].y - pts[Math.max(0, pts.length - 4)].y);
+  if (d > 5) return { color: "#00c853", txt: "🚀 To the moon", d };
+  if (d < -5) return { color: "#ff5252", txt: "😤 Jetzt hilft nur noch eine Rachewette", d };
+  return { color: "#ff9100", txt: "🤔 Auch mal was trauen", d };
+}
+
+function chart(pts, color) {
+  const W = 320, H = 180, L = 44, R = 12, T = 12, B = 38, pw = W - L - R, ph = H - T - B;
+  let lo = Math.min(...pts.map(p => p.y)), hi = Math.max(...pts.map(p => p.y));
+  if (hi - lo < 1) { lo -= .5; hi += .5; }
+  const pad = (hi - lo) * .1; lo -= pad; hi += pad;
+  const X = i => L + (pts.length === 1 ? pw / 2 : i * pw / (pts.length - 1));
+  const Y = v => T + (hi - v) * ph / (hi - lo);
+  const step = Math.ceil(pts.length / 8), cy = T + ph / 2;
+  const grid = [lo, (lo + hi) / 2, hi].map(v => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#282e36"/><text x="${L - 5}" y="${Y(v) + 3}" text-anchor="end" fill="#8e99a8" font-size="9">${v.toFixed(1)}</text>`).join("");
+  const xl = pts.map((p, i) => i % step === 0 || i === pts.length - 1
+    ? `<text x="${X(i)}" y="${H - B + 14}" text-anchor="middle" fill="#8e99a8" font-size="9">${esc(p.x)}</text>` : "").join("");
+  const line = pts.map((p, i) => `${X(i)},${Y(p.y)}`).join(" ");
+  const dots = pts.map((p, i) => `<circle cx="${X(i)}" cy="${Y(p.y)}" r="${i === pts.length - 1 ? 4.5 : 3}" fill="${color}"><title>${esc(p.x)}: ${eur(p.y)}</title></circle>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="Guthaben-Verlauf">${grid}
+    <polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${dots}${xl}
+    <text x="${L + pw / 2}" y="${H - 3}" text-anchor="middle" fill="#8e99a8" font-size="9">Rennen</text>
+    <text transform="rotate(-90 9 ${cy})" x="9" y="${cy}" text-anchor="middle" fill="#8e99a8" font-size="9">Guthaben (€)</text></svg>`;
+}
+
+function renderAnalytics() {
+  const races = raceList();
+  $("analytics").innerHTML = [...users].sort((a, b) => b.balance - a.balance).map(u => {
+    const pts = series(u, races), t = trend(pts);
+    return `<div class="card"><div style="display:flex;align-items:center;gap:10px">${av(u, 36)}
+      <div style="flex:1;min-width:0"><b>${esc(uname(u))}</b><div class="mut" style="font-size:.8rem">Aktuell ${eur(u.balance)}</div></div></div>
+      <div style="font-weight:800;color:${t.color};margin:10px 0 2px">${t.txt}</div>
+      <div class="mut" style="font-size:.8rem;margin-bottom:10px">Trend der letzten 3 Rennen: ${t.d > 0 ? "+" : ""}${eur(t.d)}</div>${chart(pts, t.color)}</div>`;
+  }).join("") || `<p class="mut">Noch keine Spieler.</p>`;
+}
+
 function preview() {
   const a = parseFloat($("bet-amount").value), o = parseFloat($("bet-odds").value);
   const m = users.find(u => u.id === me?.uid)?.oddsMultiplier || 1;
@@ -343,9 +435,11 @@ document.addEventListener("toggle", e => {
 
 /* ---------- Aktionen (Transaktionen = kein Doppelklick-/Abbruch-Problem) ---------- */
 const A = {
-  tab: d => tab(d.tab),
+  nav: d => { tab(d.tab); menu(false); window.scrollTo(0, 0); },
+  menu: () => menu(),
+  menuClose: () => menu(false),
   login: () => signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value),
-  logout: () => signOut(auth),
+  logout: () => { menu(false); return signOut(auth); },
   async register() {
     const name = $("name").value.trim();
     if (name.length < 2) return toast("Bitte einen Spitznamen (mind. 2 Zeichen) eingeben.", true);
@@ -430,8 +524,14 @@ const A = {
     const id = $("adm-user").value; if (!id) return toast("Bitte Spieler wählen.", true);
     const v = r2(parseFloat(d.v ?? $("adm-delta").value));
     if (!v) return toast("Bitte Betrag eingeben.", true);
-    await updateDoc(doc(db, "users", id), { balance: increment(v) });
-    $("adm-delta").value = ""; toast(`${v > 0 ? "+" : ""}${eur(v)} gebucht.`);
+    const u = users.find(x => x.id === id), rl = raceList();
+    const rn = race.isOpen ? String(race.raceNumber) : (rl[rl.length - 1] ?? null);
+    const note = d.n || $("adm-note").value.trim() || "Manuelle Buchung";
+    await runTransaction(db, async t => {
+      t.update(doc(db, "users", id), { balance: increment(v) });
+      t.set(doc(collection(db, "txns")), { userId: id, userName: uname(u), delta: v, note, raceNumber: rn, createdAt: serverTimestamp() });
+    });
+    $("adm-delta").value = ""; $("adm-note").value = ""; toast(`${v > 0 ? "+" : ""}${eur(v)} gebucht.`);
   }
 };
 
