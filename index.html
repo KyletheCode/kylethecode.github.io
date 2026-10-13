@@ -123,9 +123,9 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
           <label for="bet-horse">Pferd / Tipp</label>
           <input id="bet-horse" placeholder="z. B. Pferd Nr. 3" maxlength="40">
           <label for="bet-amount">Einsatz (€)</label>
-          <input type="number" inputmode="decimal" step="0.01" min="0.01" id="bet-amount" placeholder="1,00">
+          <input type="text" inputmode="decimal" id="bet-amount" placeholder="1,00">
           <label for="bet-odds">Quote</label>
-          <input type="number" inputmode="decimal" step="0.1" min="1.01" id="bet-odds" placeholder="2.5">
+          <input type="text" inputmode="decimal" id="bet-odds" placeholder="2.5">
           <div id="team-box" class="hidden" style="margin:6px 0 12px;background:#231d38;padding:10px;border-radius:6px;border:1px solid #3d2f66">
             <label style="cursor:pointer;color:#fff;margin:0;display:flex;align-items:center;gap:10px">
               <input type="checkbox" id="bet-team" style="width:18px;height:18px;margin:0"> 🤝 Team-Wette (×1,5)</label>
@@ -185,11 +185,11 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
       <label>🍻 Bier-Ex Ergebnis</label>
       <div class="row"><button class="s w" data-act="ex" data-m="2">🏆 2x</button><button class="s l" data-act="ex" data-m="0.5">❌ 0,5x</button><button class="s" data-act="ex" data-m="1">🔄 Reset</button></div>
       <label>Guthaben ändern um (€, auch negativ)</label>
-      <input type="number" inputmode="decimal" step="0.01" id="adm-delta" placeholder="z. B. -2">
+      <input type="text" inputmode="decimal" id="adm-delta" placeholder="z. B. -2">
       <input id="adm-note" placeholder="Grund (optional)" maxlength="40">
       <div class="row"><button class="s u" data-act="adjust">Buchen</button><button class="s l" data-act="adjust" data-v="-2" data-n="Strafe">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="1" data-n="Bier-Bonus">+1 € Bier</button></div>
 
-      <h3>Party-Modi</h3><div id="mode-btns"></div>
+      <h3>Party-Modi & Sperren</h3><div id="mode-btns"></div>
     </div></div>
   </div>
 </div>
@@ -200,16 +200,22 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8", // wird beim Deploy per GitHub Secret ersetzt
+  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8",
   authDomain: "kc-kegelclub.firebaseapp.com",
   projectId: "kc-kegelclub",
   storageBucket: "kc-kegelclub.firebasestorage.app",
   messagingSenderId: "269537570601",
   appId: "1:269537570601:web:3670cb28c7e183198c5138"
 };
-// Nur für die Anzeige. Die echte Absicherung passiert in firestore.rules!
+
 const ADMIN_EMAIL = "m.tobias98@gmx.de";
-const MODES = { bonus: "Bier-Ex Info", penalty: "Risiko-Runde (−2 €)", buyin: "Not-Einkauf", team: "Team-Modus (×1,5)" };
+const MODES = { 
+  bonus: "Bier-Ex Info", 
+  penalty: "Risiko-Runde (−2 €)", 
+  buyin: "Not-Einkauf", 
+  team: "Team-Modus (×1,5)",
+  regBlock: "🚫 Neuregistrierung sperren" 
+};
 
 const auth = getAuth(initializeApp(firebaseConfig));
 const db = getFirestore();
@@ -222,7 +228,14 @@ const av = (u, s = 32) => u?.avatar?.startsWith("data:image/jpeg;base64,")
   ? `<img class="av" style="width:${s}px;height:${s}px" src="${esc(u.avatar)}" alt="">`
   : `<span class="av" style="width:${s}px;height:${s}px;font-size:${s / 2}px">${esc((uname(u || {}) || "?")[0].toUpperCase())}</span>`;
 
-// Bild mittig quadratisch zuschneiden, auf 128x128 verkleinern, als JPEG (~5-10 KB) kodieren
+// Hilfsfunktion: Konvertiert Kommas in Punkte und parft die Zahl sicher
+const numVal = id => {
+  const el = $(id);
+  if (!el) return NaN;
+  const v = el.value.trim().replace(",", ".");
+  return parseFloat(v);
+};
+
 function resizeImage(file, size = 128) {
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file), img = new Image();
@@ -320,7 +333,9 @@ function renderRace() {
 }
 
 function renderModes() {
-  Object.keys(MODES).forEach(k => $("sp-" + k).classList.toggle("hidden", !modes[k]));
+  Object.keys(MODES).forEach(k => {
+    if (k !== "regBlock") $("sp-" + k).classList.toggle("hidden", !modes[k]);
+  });
   $("team-box").classList.toggle("hidden", !modes.team);
   if (!modes.team) $("bet-team").checked = false;
   $("mode-btns").innerHTML = Object.entries(MODES).map(([k, l]) =>
@@ -409,7 +424,7 @@ function renderDoping() {
   $("drink-board").innerHTML = st.map(x => `<div style="padding:10px 0;border-bottom:1px solid var(--bd)">
     <div style="display:flex;align-items:center;gap:8px">${av(x.u, 28)}<b style="flex:1;min-width:0">${esc(uname(x.u))}</b><b class="warn">${lit(x.ml)}</b></div>
     <div style="height:6px;background:#111418;border-radius:3px;margin:6px 0"><div style="height:100%;width:${x.ml / max * 100}%;background:#ffb300;border-radius:3px"></div></div>
-    <div class="mut" style="font-size:.8rem">${SIZES.filter(z => x.by[z]).map(z => `${x.by[z]}× ${lit(z)}`).join(" · ") || "Noch nichts getrunken"}</div></div>`).join("")
+    <div class="mut" style="font-size:.8rem">${SIZES.filter(z => x.by[z]).map(z => `${x.by[z]}×${lit(z)}`).join(" · ") || "Noch nichts getrunken"}</div></div>`).join("")
     || `<p class="mut">Noch keine Spieler.</p>`;
 }
 
@@ -425,7 +440,6 @@ function renderTxns() {
 const raceList = () => [...new Set([...bets.map(b => b.raceNumber), ...txns.map(t => t.raceNumber), race.isOpen ? race.raceNumber : null]
   .filter(r => r != null).map(String))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-// Guthaben nach jedem Rennen: Start 10 € + Wetten + manuelle Buchungen aus dem Log
 function series(u, races) {
   const mine = txns.filter(t => t.userId === u.id);
   let y = 10 + mine.filter(t => t.raceNumber == null).reduce((a, t) => a + t.delta, 0);
@@ -478,7 +492,7 @@ function renderAnalytics() {
 }
 
 function preview() {
-  const a = parseFloat($("bet-amount").value), o = parseFloat($("bet-odds").value);
+  const a = numVal("bet-amount"), o = numVal("bet-odds");
   const m = users.find(u => u.id === me?.uid)?.oddsMultiplier || 1;
   $("preview").textContent = a > 0 && o > 0 ? `Möglicher Gewinn: ${eur(a * o * m * ($("bet-team").checked ? 1.5 : 1))}` : "";
 }
@@ -488,7 +502,7 @@ document.addEventListener("toggle", e => {
   e.target.open ? openRaces.add(k) : openRaces.delete(k);
 }, true);
 
-/* ---------- Aktionen (Transaktionen = kein Doppelklick-/Abbruch-Problem) ---------- */
+/* ---------- Aktionen ---------- */
 const A = {
   nav: d => { tab(d.tab); menu(false); window.scrollTo(0, 0); },
   menu: () => menu(),
@@ -508,6 +522,7 @@ const A = {
   login: () => signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value),
   logout: () => { menu(false); return signOut(auth); },
   async register() {
+    if (modes.regBlock) return toast("Die Neuregistrierung ist aktuell vom Admin gesperrt!", true);
     const name = $("name").value.trim();
     if (name.length < 2) return toast("Bitte einen Spitznamen (mind. 2 Zeichen) eingeben.", true);
     const file = $("avatar").files[0];
@@ -520,8 +535,11 @@ const A = {
   },
 
   async place() {
-    const horse = $("bet-horse").value.trim(), amount = r2(parseFloat($("bet-amount").value));
-    const odds = parseFloat($("bet-odds").value), team = modes.team && $("bet-team").checked;
+    const horse = $("bet-horse").value.trim();
+    const amount = r2(numVal("bet-amount"));
+    const odds = numVal("bet-odds");
+    const team = modes.team && $("bet-team").checked;
+
     if (!horse || !(amount > 0) || !(odds >= 1.01)) return toast("Bitte Tipp, Einsatz und Quote (≥ 1,01) korrekt ausfüllen.", true);
     if (!confirm(`${eur(amount)} auf "${horse}" setzen?`)) return;
     const uref = doc(db, "users", me.uid), bref = doc(collection(db, "bets"));
@@ -589,8 +607,10 @@ const A = {
   },
   async adjust(d) {
     const id = $("adm-user").value; if (!id) return toast("Bitte Spieler wählen.", true);
-    const v = r2(parseFloat(d.v ?? $("adm-delta").value));
-    if (!v) return toast("Bitte Betrag eingeben.", true);
+    const rawVal = d.v ?? numVal("adm-delta");
+    const v = r2(typeof rawVal === "number" ? rawVal : parseFloat(String(rawVal).replace(",", ".")));
+    
+    if (!v || isNaN(v)) return toast("Bitte Betrag eingeben.", true);
     const u = users.find(x => x.id === id), rl = raceList();
     const rn = race.isOpen ? String(race.raceNumber) : (rl[rl.length - 1] ?? null);
     const note = d.n || $("adm-note").value.trim() || "Manuelle Buchung";
