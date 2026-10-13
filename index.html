@@ -88,6 +88,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
   <nav id="drawer">
     <div class="dh"><span id="dr-av"></span><b id="dr-name"></b></div>
     <a class="nav on" data-act="nav" data-tab="main">🏇 Wetten</a>
+    <a class="nav" data-act="nav" data-tab="ranking">🏆 Rangliste</a>
     <a class="nav" data-act="nav" data-tab="history">📜 Wett-History</a>
     <a class="nav" data-act="nav" data-tab="stats">📊 Statistik</a>
     <a class="nav" data-act="nav" data-tab="analytics">📈 Analytics</a>
@@ -99,7 +100,6 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
   <div class="wrap">
     <!-- WETTEN -->
     <div id="page-main">
-      <div class="card"><h2>🏆 Rangliste</h2><div id="leaderboard"></div></div>
 
       <div id="sp-bonus" class="card sp bonus hidden"><h2>🍻 Bier-Ex Poker</h2>
         <p>Nennt eure Zielzeit – der Mutigste tritt gegen die Stoppuhr an.</p><hr>
@@ -136,6 +136,11 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
       </div>
 
       <div class="card"><h2>📋 Wetten: <span id="round-title">-</span></h2><div id="current-bets"></div></div>
+    </div>
+
+    <!-- RANGLISTE -->
+    <div id="page-ranking" class="hidden">
+      <div class="card"><h2>🏆 Rangliste</h2><div id="leaderboard"></div></div>
     </div>
 
     <!-- HISTORIE -->
@@ -195,7 +200,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8", // wird beim Deploy per GitHub Secret ersetzt
+  apiKey: "__FIREBASE_API_KEY__", // wird beim Deploy per GitHub Secret ersetzt
   authDomain: "kc-kegelclub.firebaseapp.com",
   projectId: "kc-kegelclub",
   storageBucket: "kc-kegelclub.firebasestorage.app",
@@ -269,7 +274,7 @@ onAuthStateChanged(auth, user => {
 /* ---------- Rendering ---------- */
 function tab(t) {
   document.querySelectorAll(".nav[data-tab]").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
-  ["main", "history", "stats", "analytics", "doping", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
+  ["main", "ranking", "history", "stats", "analytics", "doping", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
 }
 function menu(open) {
   const o = open ?? !$("drawer").classList.contains("open");
