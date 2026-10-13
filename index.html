@@ -123,13 +123,13 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <div class="dh"><span id="dr-av"></span><b id="dr-name"></b></div>
     <a class="nav on" data-act="nav" data-tab="main">🏇 Wetten</a>
     <a class="nav" data-act="nav" data-tab="ranking">🏆 Rangliste</a>
-    <a class="nav" data-act="nav" data-tab="history">📜 Wett-History</a>
+    <a class="nav" data-act="nav" data-tab="history">📜 Wettverlauf</a>
     <a class="nav" data-act="nav" data-tab="stats">📊 Statistik</a>
-    <a class="nav" data-act="nav" data-tab="analytics">📈 Analytics</a>
+    <a class="nav" data-act="nav" data-tab="analytics">📈 Auswertung</a>
     <a class="nav" data-act="nav" data-tab="doping">🍺 Doping</a>
-    <a class="nav hidden" id="nav-admin" data-act="nav" data-tab="admin">👑 Admin</a>
+    <a class="nav hidden" id="nav-admin" data-act="nav" data-tab="admin">👑 Verwaltung</a>
     <div style="flex:1"></div>
-    <a class="nav" data-act="logout">🚪 Logout</a>
+    <a class="nav" data-act="logout">🚪 Abmelden</a>
   </nav>
   <div class="wrap">
     <!-- WETTEN -->
@@ -612,11 +612,20 @@ function series(u, races) {
   return pts;
 }
 
+// Stufen: ab "min" Euro Veränderung (letzte 3 Rennen) gilt der Spruch. Reihenfolge: von oben nach unten.
+const TRENDS = [
+  { min: 10,  color: "#00e676", txt: "🐴 Hast du die Sina gefickt oder warum kennst du dich so gut mit Pferden aus?" },
+  { min: 5,   color: "#00c853", txt: "🚀 To the Moon - Elon Musk" },
+  { min: 2,   color: "#9ccc65", txt: "💪 Bist ein Macher wie TL9" },
+  { min: 0,   color: "#ffb300", txt: "🤨 Haben wir schon angefangen???" },
+  { min: -2,  color: "#ff9100", txt: "😬 Upppsiii, mir rutscht das Koks auch manchmal in die Analrinne" },
+  { min: -10, color: "#ff5252", txt: "😤 Jetzt hilft nur noch eine Rachewette", exclusive: true }, // zwischen −2 und −10 €
+  { min: -Infinity, color: "#d50000", txt: "🍟 Ketchup oder Mayo?!" }
+];
 function trend(pts) {
   const d = pts.length < 2 ? 0 : r2(pts[pts.length - 1].y - pts[Math.max(0, pts.length - 4)].y);
-  if (d > 5) return { color: "#00c853", txt: "🚀 To the moon", d };
-  if (d < -5) return { color: "#ff5252", txt: "😤 Jetzt hilft nur noch eine Rachewette", d };
-  return { color: "#ff9100", txt: "🤔 Auch mal was trauen", d };
+  const t = TRENDS.find(x => x.exclusive ? d > x.min : d >= x.min);
+  return { color: t.color, txt: t.txt, d };
 }
 
 function chart(pts, color) {
