@@ -35,6 +35,7 @@ button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
 .sp.bonus{border-color:#00b0ff}.sp.penalty{border-color:#ff1744}.sp.buyin{border-color:#ffc400}.sp.team{border-color:#651fff}
 .badge{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;background:#651fff}
 .badge.w{background:var(--green)}.badge.l{background:#d50000}
+.av{border-radius:50%;object-fit:cover;background:#232931;display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex:none;vertical-align:middle}
 .banner{background:linear-gradient(90deg,#e2001a,#8a0010);padding:12px;border-radius:8px;font-weight:800;text-align:center;text-transform:uppercase;margin-bottom:12px}
 .lb{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd);font-size:.95rem}
 .lb:last-child{border:0}.lb .n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -56,6 +57,9 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <h1 class="brand" style="font-size:1.7rem;margin-bottom:20px">KC KEGELCLUB <span>RACE</span></h1>
     <h2>Anmelden / Konto erstellen</h2>
     <input id="name" placeholder="Spitzname (nur bei Registrierung)" maxlength="20" autocomplete="nickname">
+    <label for="avatar" style="text-align:left">Profilbild (bei Registrierung Pflicht)</label>
+    <input type="file" id="avatar" accept="image/*" style="font-size:.85rem">
+    <img id="avatar-prev" class="av hidden" style="width:72px;height:72px;margin:0 auto 12px" alt="Vorschau">
     <input type="email" id="email" placeholder="E-Mail-Adresse" autocomplete="email">
     <input type="password" id="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password">
     <button class="b" data-act="login">Einloggen</button>
@@ -67,7 +71,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 <div id="app" class="hidden">
   <header>
     <div class="brand">KC KEGELCLUB <span>RACE</span></div>
-    <div class="pill"><b id="me-name"></b><button data-act="logout">LOGOUT</button></div>
+    <div class="pill"><span id="me-av"></span><b id="me-name"></b><button data-act="logout">LOGOUT</button></div>
   </header>
   <div class="wrap">
     <div class="tabs">
@@ -148,7 +152,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8",
+  apiKey: "__FIREBASE_API_KEY__", // wird beim Deploy per GitHub Secret ersetzt
   authDomain: "kc-kegelclub.firebaseapp.com",
   projectId: "kc-kegelclub",
   storageBucket: "kc-kegelclub.firebasestorage.app",
@@ -166,6 +170,30 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const r2 = n => Math.round(n * 100) / 100;
 const eur = n => r2(n).toFixed(2).replace(".", ",") + " €";
 const uname = u => u.name || (u.email || "").split("@")[0];
+const av = (u, s = 32) => u?.avatar?.startsWith("data:image/jpeg;base64,")
+  ? `<img class="av" style="width:${s}px;height:${s}px" src="${esc(u.avatar)}" alt="">`
+  : `<span class="av" style="width:${s}px;height:${s}px;font-size:${s / 2}px">${esc((uname(u || {}) || "?")[0].toUpperCase())}</span>`;
+
+// Bild mittig quadratisch zuschneiden, auf 128x128 verkleinern, als JPEG (~5-10 KB) kodieren
+function resizeImage(file, size = 128) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas"); c.width = c.height = size;
+      const s = Math.min(img.width, img.height);
+      c.getContext("2d").drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
+      URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", 0.7));
+    };
+    img.onerror = () => rej(new Error("Bild konnte nicht gelesen werden."));
+    img.src = url;
+  });
+}
+$("avatar").addEventListener("change", async e => {
+  const f = e.target.files[0], p = $("avatar-prev");
+  if (!f) return p.classList.add("hidden");
+  try { p.src = await resizeImage(f); p.classList.remove("hidden"); }
+  catch (err) { toast(err.message, true); e.target.value = ""; p.classList.add("hidden"); }
+});
 
 let me = null, isAdmin = false, users = [], bets = [], race = { isOpen: false, raceNumber: null };
 let modes = {}, unsubs = [];
@@ -204,7 +232,7 @@ function renderUsers() {
   $("leaderboard").innerHTML = sorted.map((u, i) => {
     const m = u.oddsMultiplier || 1;
     const bd = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
-    return `<div class="lb"><span class="n">${i + 1}. <b>${esc(uname(u))}</b> ${bd}</span><b class="ok">${eur(u.balance)}</b></div>`;
+    return `<div class="lb"><span class="n">${i + 1}. ${av(u)} <b>${esc(uname(u))}</b> ${bd}</span><b class="ok">${eur(u.balance)}</b></div>`;
   }).join("") || `<p class="mut">Noch keine Spieler.</p>`;
   if (isAdmin) {
     const sel = $("adm-user"), cur = sel.value;
@@ -218,7 +246,7 @@ function renderUsers() {
     box.style.cssText = `margin-bottom:12px;padding:10px;border-radius:6px;font-weight:700;text-align:center;background:${win ? "rgba(0,200,83,.2)" : "rgba(213,0,0,.2)"};border:1px solid ${win ? "#00c853" : "#d50000"};color:${win ? "#00c853" : "#ff5252"}`;
     box.textContent = win ? "🔥 2x BIER-EX BONUS aktiv (nächste Quote verdoppelt)" : "⚠️ 0,5x BIER-EX MALUS aktiv (nächste Quote halbiert)";
   }
-  if (mine) $("me-name").textContent = uname(mine);
+  if (mine) { $("me-name").textContent = uname(mine); $("me-av").innerHTML = av(mine, 24); }
   preview();
 }
 
@@ -254,7 +282,7 @@ function betCard(b) {
   let adm = "";
   if (isAdmin) adm = `<div class="a row">${b.status === "offen" ? `<button class="s w" data-act="win" data-id="${esc(b.id)}">✓ Sieg</button><button class="s l" data-act="lose" data-id="${esc(b.id)}">✗ Niederlage</button>` : ""}<button class="s" data-act="del" data-id="${esc(b.id)}">🗑️ Stornieren</button></div>`;
   return `<div class="bet ${esc(b.status)}"><div class="r"><b>${esc(b.horse)}</b>${st}</div>
-    <div class="r mut"><span>${esc(b.userName || (b.userEmail || "").split("@")[0])}${badges}</span><span>${eur(b.amount)} × ${Number(b.finalOdds).toFixed(2)}</span></div>${adm}</div>`;
+    <div class="r mut"><span style="display:inline-flex;align-items:center;gap:6px">${av(users.find(u => u.id === b.userId), 22)}${esc(b.userName || (b.userEmail || "").split("@")[0])}${badges}</span><span>${eur(b.amount)} × ${Number(b.finalOdds).toFixed(2)}</span></div>${adm}</div>`;
 }
 
 function renderBets() {
@@ -287,9 +315,12 @@ const A = {
   async register() {
     const name = $("name").value.trim();
     if (name.length < 2) return toast("Bitte einen Spitznamen (mind. 2 Zeichen) eingeben.", true);
+    const file = $("avatar").files[0];
+    if (!file) return toast("Bitte ein Profilbild hochladen!", true);
+    const avatar = await resizeImage(file);
     const email = $("email").value.trim();
     const res = await createUserWithEmailAndPassword(auth, email, $("password").value);
-    await setDoc(doc(db, "users", res.user.uid), { email, name, balance: 10, oddsMultiplier: 1 });
+    await setDoc(doc(db, "users", res.user.uid), { email, name, avatar, balance: 10, oddsMultiplier: 1 });
     toast("Registriert mit 10 € Startguthaben!");
   },
 
