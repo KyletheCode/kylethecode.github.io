@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KC Kegelclub Race</title>
 <style>
-:root{--bg:#0f1215;--card:#181c21;--bd:#282e36;--red:#e2001a;--green:#00c853;--orange:#ff9100;--blue:#00b0ff;--mut:#8e99a8}
+:root{--bg:#0f1215;--card:#181c21;--bd:#282e36;--red:#e2001a;--green:#00c853;--orange:#ff9100;--blue:#00b0ff;--mut:#8e99a8;--gold:#ffd700;--silver:#c0c0c0;--bronze:#cd7f32}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 body{background:var(--bg);color:#fff;padding-bottom:40px}
 .hidden{display:none!important}
@@ -49,6 +49,20 @@ button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
 .banner{background:linear-gradient(90deg,#e2001a,#8a0010);padding:12px;border-radius:8px;font-weight:800;text-align:center;text-transform:uppercase;margin-bottom:12px}
 .lb{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd);font-size:.95rem}
 .lb:last-child{border:0}.lb .n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* PODIUM STYLES */
+.podium-container{display:flex;justify-content:center;align-items:flex-end;gap:12px;margin:20px 0 25px;padding:0 5px}
+.podium-step{display:flex;flex-direction:column;align-items:center;flex:1;max-width:110px}
+.podium-step .user-info{display:flex;flex-direction:column;align-items:center;margin-bottom:8px;text-align:center;width:100%}
+.podium-step .user-name{font-weight:800;font-size:.8rem;margin-top:4px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.podium-step .user-val{font-size:.8rem;font-weight:900;color:var(--green)}
+.podium-box{width:100%;border-top-left-radius:8px;border-top-right-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:10px;font-weight:900;font-size:1.4rem;color:#0f1215;box-shadow:0 -4px 10px rgba(0,0,0,.3)}
+.podium-step.p1 .podium-box{height:100px;background:linear-gradient(180deg,var(--gold),#b89b00);border:1px solid #ffe552}
+.podium-step.p2 .podium-box{height:75px;background:linear-gradient(180deg,var(--silver),#8a8a8a);border:1px solid #e0e0e0}
+.podium-step.p3 .podium-box{height:55px;background:linear-gradient(180deg,var(--bronze),#8c531b);border:1px solid #e59b52}
+.podium-avatar-wrap{position:relative;display:inline-block}
+.podium-crown{position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:1rem;line-height:1}
+
 .bet{background:#111418;border:1px solid var(--bd);border-left:4px solid var(--orange);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.9rem}
 .bet.gewonnen{border-left-color:var(--green)}.bet.verloren{border-left-color:#555}
 .bet .r{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap}
@@ -149,7 +163,11 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 
     <!-- RANGLISTE -->
     <div id="page-ranking" class="hidden">
-      <div class="card"><h2>🏆 Rangliste</h2><div id="leaderboard"></div></div>
+      <div class="card">
+        <h2>🏆 Rangliste</h2>
+        <div id="podium"></div>
+        <div id="leaderboard"></div>
+      </div>
     </div>
 
     <!-- HISTORIE -->
@@ -303,11 +321,54 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") menu(false);
 
 function renderUsers() {
   const sorted = [...users].sort((a, b) => b.balance - a.balance);
-  $("leaderboard").innerHTML = sorted.map((u, i) => {
-    const m = u.oddsMultiplier || 1;
-    const bd = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
-    return `<div class="lb"><span class="n">${i + 1}. ${av(u)} <b>${esc(uname(u))}</b> ${bd}</span><b class="ok">${eur(u.balance)}</b></div>`;
-  }).join("") || `<p class="mut">Noch keine Spieler.</p>`;
+  
+  // Podest (Top 3) & Restliche Liste
+  if (sorted.length > 0) {
+    const top3 = [sorted[1], sorted[0], sorted[2]]; // Reihenfolge für Podest: Platz 2, Platz 1, Platz 3
+    const ranks = [2, 1, 3];
+    const classes = ["p2", "p1", "p3"];
+
+    let podiumHtml = `<div class="podium-container">`;
+    top3.forEach((u, idx) => {
+      if (u) {
+        const rank = ranks[idx];
+        const cls = classes[idx];
+        const crown = rank === 1 ? `<div class="podium-crown">👑</div>` : "";
+        const badge = (u.oddsMultiplier === 2) ? `<span class="badge w" style="font-size:8px">2x</span>` : (u.oddsMultiplier === 0.5) ? `<span class="badge l" style="font-size:8px">0,5x</span>` : "";
+
+        podiumHtml += `
+          <div class="podium-step ${cls}">
+            <div class="user-info">
+              <div class="podium-avatar-wrap">
+                ${crown}
+                ${av(u, rank === 1 ? 52 : 42)}
+              </div>
+              <div class="user-name">${esc(uname(u))} ${badge}</div>
+              <div class="user-val">${eur(u.balance)}</div>
+            </div>
+            <div class="podium-box">${rank}</div>
+          </div>`;
+      }
+    });
+    podiumHtml += `</div>`;
+    $("podium").innerHTML = podiumHtml;
+
+    // Restliche Plätze ab Platz 4
+    const rest = sorted.slice(3);
+    if (rest.length > 0) {
+      $("leaderboard").innerHTML = `<hr>` + rest.map((u, i) => {
+        const m = u.oddsMultiplier || 1;
+        const bd = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
+        return `<div class="lb"><span class="n">${i + 4}. ${av(u)} <b>${esc(uname(u))}</b> ${bd}</span><b class="ok">${eur(u.balance)}</b></div>`;
+      }).join("");
+    } else {
+      $("leaderboard").innerHTML = "";
+    }
+  } else {
+    $("podium").innerHTML = "";
+    $("leaderboard").innerHTML = `<p class="mut" style="text-align:center">Noch keine Spieler.</p>`;
+  }
+
   if (isAdmin) {
     const sel = $("adm-user"), cur = sel.value;
     sel.innerHTML = `<option value="">-- Spieler --</option>` + sorted.map(u => `<option value="${esc(u.id)}">${esc(uname(u))} (${eur(u.balance)}, ${u.oddsMultiplier || 1}x)</option>`).join("");
