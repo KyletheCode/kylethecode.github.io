@@ -101,6 +101,15 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <!-- WETTEN -->
     <div id="page-main">
 
+      <!-- EIGENES GUTHABEN HIGHLIGHT -->
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#181c21,#232931);border-left:4px solid var(--green)">
+        <div>
+          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--mut);font-weight:700">Dein Guthaben</div>
+          <div id="my-balance-display" style="font-size:1.5rem;font-weight:900;color:var(--green)">0,00 €</div>
+        </div>
+        <div id="my-balance-badge"></div>
+      </div>
+
       <div id="sp-bonus" class="card sp bonus hidden"><h2>🍻 Bier-Ex Poker</h2>
         <p>Nennt eure Zielzeit – der Mutigste tritt gegen die Stoppuhr an.</p><hr>
         <p><b class="ok">Geschafft:</b> Quote deiner nächsten Wette <b>×2,0</b>.</p>
@@ -228,7 +237,6 @@ const av = (u, s = 32) => u?.avatar?.startsWith("data:image/jpeg;base64,")
   ? `<img class="av" style="width:${s}px;height:${s}px" src="${esc(u.avatar)}" alt="">`
   : `<span class="av" style="width:${s}px;height:${s}px;font-size:${s / 2}px">${esc((uname(u || {}) || "?")[0].toUpperCase())}</span>`;
 
-// Hilfsfunktion: Konvertiert Kommas in Punkte und parft die Zahl sicher
 const numVal = id => {
   const el = $(id);
   if (!el) return NaN;
@@ -266,7 +274,6 @@ function toast(msg, err) {
   clearTimeout(tt); tt = setTimeout(() => t.className = "", 3000);
 }
 
-/* ---------- Auth ---------- */
 onAuthStateChanged(auth, user => {
   unsubs.forEach(u => u()); unsubs = [];
   me = user; isAdmin = !!user && user.email === ADMIN_EMAIL;
@@ -284,7 +291,6 @@ onAuthStateChanged(auth, user => {
   Object.keys(MODES).forEach(k => L(doc(db, "settings", k), s => { modes[k] = s.exists() && !!s.data().isOpen; renderModes(); }));
 });
 
-/* ---------- Rendering ---------- */
 function tab(t) {
   document.querySelectorAll(".nav[data-tab]").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
   ["main", "ranking", "history", "stats", "analytics", "doping", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
@@ -308,6 +314,14 @@ function renderUsers() {
     sel.value = cur;
   }
   const mine = users.find(u => u.id === me?.uid), m = mine?.oddsMultiplier || 1, box = $("mult-info");
+  
+  // Eigenes Guthaben oben auf der Wettseite aktualisieren
+  if (mine) {
+    $("my-balance-display").textContent = eur(mine.balance);
+    const badgeHtml = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
+    $("my-balance-badge").innerHTML = badgeHtml;
+  }
+
   box.classList.toggle("hidden", m === 1);
   if (m !== 1) {
     const win = m === 2;
@@ -436,7 +450,6 @@ function renderTxns() {
     || `<p class="mut">Noch keine Buchungen.</p>`;
 }
 
-/* ---------- Analytics ---------- */
 const raceList = () => [...new Set([...bets.map(b => b.raceNumber), ...txns.map(t => t.raceNumber), race.isOpen ? race.raceNumber : null]
   .filter(r => r != null).map(String))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
@@ -502,7 +515,6 @@ document.addEventListener("toggle", e => {
   e.target.open ? openRaces.add(k) : openRaces.delete(k);
 }, true);
 
-/* ---------- Aktionen ---------- */
 const A = {
   nav: d => { tab(d.tab); menu(false); window.scrollTo(0, 0); },
   menu: () => menu(),
