@@ -81,14 +81,13 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
   <div class="wrap">
     <div class="tabs">
       <div class="tab on" data-act="tab" data-tab="main">🏇 Wetten</div>
-      <div class="tab" data-act="tab" data-tab="history">📜 Historie</div>
+      <div class="tab" data-act="tab" data-tab="history">📜 History &amp; Statistik</div>
       <div class="tab hidden" id="tab-admin" data-act="tab" data-tab="admin">👑 Admin</div>
     </div>
 
     <!-- WETTEN -->
     <div id="page-main">
       <div class="card"><h2>🏆 Rangliste</h2><div id="leaderboard"></div></div>
-      <div class="card"><h2>🏅 Erfolge</h2><div id="achievements"></div></div>
 
       <div id="sp-bonus" class="card sp bonus hidden"><h2>🍻 Bier-Ex Poker</h2>
         <p>Nennt eure Zielzeit – der Mutigste tritt gegen die Stoppuhr an.</p><hr>
@@ -128,7 +127,9 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     </div>
 
     <!-- HISTORIE -->
-    <div id="page-history" class="hidden"><div class="card"><h2>📜 Alle bisherigen Wetten</h2><div id="history-bets"></div></div></div>
+    <div id="page-history" class="hidden">
+      <div class="card"><h2>📊 Statistik</h2><div id="achievements"></div></div>
+      <div class="card"><h2>📜 Alle bisherigen Wetten</h2><div id="history-bets"></div></div></div>
 
     <!-- ADMIN -->
     <div id="page-admin" class="hidden"><div class="card" style="border-top:4px solid var(--orange)">
@@ -158,7 +159,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8",
+  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8", // wird beim Deploy per GitHub Secret ersetzt
   authDomain: "kc-kegelclub.firebaseapp.com",
   projectId: "kc-kegelclub",
   storageBucket: "kc-kegelclub.firebasestorage.app",
