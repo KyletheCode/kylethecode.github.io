@@ -55,6 +55,11 @@ button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
 .p2 .step{height:68px;background:linear-gradient(#e0e0e0,#9e9e9e)}
 .p3 .step{height:52px;background:linear-gradient(#d7a27a,#a1662f)}
 .p1 .av{border:3px solid #ffd54f}.p2 .av{border:3px solid #cfd8dc}.p3 .av{border:3px solid #c98a55}
+.seg{display:flex;background:#0f1215;border:1px solid var(--bd);border-radius:8px;padding:4px;margin-bottom:16px}
+.seg div{flex:1;text-align:center;padding:10px;border-radius:6px;cursor:pointer;font-weight:800;font-size:.85rem;text-transform:uppercase;color:var(--mut)}
+.seg div.on{background:var(--red);color:#fff}
+.avpick{width:96px;height:96px;border-radius:50%;border:2px dashed var(--bd);display:flex;align-items:center;justify-content:center;text-align:center;margin:8px auto 14px;cursor:pointer;overflow:hidden;color:var(--mut);font-size:.75rem;font-weight:700;line-height:1.4;text-transform:none}
+.avpick img{width:100%;height:100%;object-fit:cover}
 .banner{background:linear-gradient(90deg,#e2001a,#8a0010);padding:12px;border-radius:8px;font-weight:800;text-align:center;text-transform:uppercase;margin-bottom:12px}
 .lb{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd);font-size:.95rem}
 .lb:last-child{border:0}.lb .n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -70,20 +75,31 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 <body>
 <div id="toast"></div>
 
-<!-- LOGIN -->
-<div id="auth" class="wrap" style="max-width:400px;margin-top:60px">
-  <div class="card" style="text-align:center;border-top:4px solid var(--red)">
-    <h1 class="brand" style="font-size:1.7rem;margin-bottom:20px">KC KEGELCLUB <span>RACE</span></h1>
-    <h2>Anmelden / Konto erstellen</h2>
-    <input id="name" placeholder="Spitzname (nur bei Registrierung)" maxlength="20" autocomplete="nickname">
-    <label for="avatar" style="text-align:left">Profilbild (bei Registrierung Pflicht)</label>
-    <input type="file" id="avatar" accept="image/*" style="font-size:.85rem">
-    <img id="avatar-prev" class="av hidden" style="width:72px;height:72px;margin:0 auto 12px" alt="Vorschau">
-    <input type="email" id="email" placeholder="E-Mail-Adresse" autocomplete="email">
-    <input type="password" id="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password">
-    <button class="b" data-act="login">Einloggen</button>
-    <p id="reg-lock" class="warn hidden" style="margin-top:10px;font-weight:700">🔒 Neue Registrierungen sind aktuell gesperrt.</p>
-    <button class="b" id="btn-register" data-act="register" style="background:#282e36;margin-top:8px">Registrieren (10 € Start)</button>
+<!-- LOGIN / REGISTRIERUNG -->
+<div id="auth" class="wrap" style="max-width:400px;margin-top:50px">
+  <div class="card" style="border-top:4px solid var(--red)">
+    <h1 class="brand" style="font-size:1.7rem;text-align:center;margin-bottom:18px">KC KEGELCLUB <span>RACE</span></h1>
+    <div class="seg">
+      <div id="seg-login" class="on" data-act="authMode" data-m="login">Einloggen</div>
+      <div id="seg-reg" data-act="authMode" data-m="register">Registrieren</div>
+    </div>
+
+    <div id="reg-fields" class="hidden">
+      <p id="reg-lock" class="warn hidden" style="font-weight:700;margin-bottom:10px">🔒 Neue Registrierungen sind aktuell gesperrt.</p>
+      <label for="name">Benutzername</label>
+      <input id="name" placeholder="z. B. Kegelkönig" maxlength="20" autocomplete="nickname">
+      <label for="avatar" style="text-align:center">Profilfoto (Pflicht)</label>
+      <label for="avatar" class="avpick"><span id="avatar-ph">📷<br>Foto<br>wählen</span><img id="avatar-prev" class="hidden" alt="Vorschau"></label>
+      <input type="file" id="avatar" accept="image/*" class="hidden">
+    </div>
+
+    <label for="email">E-Mail</label>
+    <input type="email" id="email" placeholder="name@beispiel.de" autocomplete="email">
+    <label for="password">Passwort</label>
+    <input type="password" id="password" placeholder="Passwort" autocomplete="current-password">
+
+    <button class="b" id="btn-login" data-act="login">Einloggen</button>
+    <button class="b hidden" id="btn-register" data-act="register">Konto erstellen (10 € Start)</button>
   </div>
 </div>
 
@@ -125,9 +141,10 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
       <div id="sp-buyin" class="card sp buyin hidden"><h2>💸 Not-Einkauf (Bier-Flatrate)</h2>
         <p>Guthaben aufgebraucht? Trinke in <b>1 Minute</b> so viele Biere wie möglich.</p>
         <div style="text-align:center;margin:12px 0">
+          <p id="buy-chal" class="mut" style="margin-bottom:6px"></p>
           <div id="timer" style="font-size:2.8rem;font-weight:900;font-variant-numeric:tabular-nums">1:00</div>
-          <button class="b" id="timer-btn" data-act="timer" style="background:#ffc400;color:#000;margin-top:8px">⏱️ Challenge starten</button>
-          <p class="mut" style="font-size:.75rem;margin:6px 0 0">Nur der Challenger startet den Timer auf seinem Handy.</p>
+          <button class="b hidden" id="timer-btn" data-act="timer" style="background:#ffc400;color:#000;margin-top:8px">⏱️ Challenge starten</button>
+          <p id="timer-hint" class="mut" style="font-size:.75rem;margin:6px 0 0"></p>
         </div><hr>
         <p><b style="color:#ffc400">Belohnung:</b> 0,80 € pro Bier (max. 4,00 €).</p></div>
       <div id="sp-team" class="card sp team hidden"><h2>🤝 Team-Modus</h2>
@@ -211,6 +228,11 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 
       <h3>Party-Modi</h3><div id="mode-btns"></div>
 
+      <h3>🍺 Not-Einkauf-Challenge</h3>
+      <p>Challenger: <b id="buy-chal-adm">–</b></p>
+      <p class="mut" style="font-size:.8rem">Oben den Spieler wählen und festlegen. Nur er darf die Uhr starten, sie läuft bei allen mit.</p>
+      <div class="row"><button class="s w" data-act="buyAssign">Challenger festlegen</button><button class="s l" data-act="buyReset">Zurücksetzen</button></div>
+
       <h3>💶 Auszahlungen</h3><div id="payouts"></div>
 
       <h3>Registrierung</h3>
@@ -265,10 +287,10 @@ function resizeImage(file, size = 128) {
   });
 }
 $("avatar").addEventListener("change", async e => {
-  const f = e.target.files[0], p = $("avatar-prev");
-  if (!f) return p.classList.add("hidden");
-  try { p.src = await resizeImage(f); p.classList.remove("hidden"); }
-  catch (err) { toast(err.message, true); e.target.value = ""; p.classList.add("hidden"); }
+  const f = e.target.files[0], p = $("avatar-prev"), set = ok => { p.classList.toggle("hidden", !ok); $("avatar-ph").classList.toggle("hidden", ok); };
+  if (!f) return set(false);
+  try { p.src = await resizeImage(f); set(true); }
+  catch (err) { toast(err.message, true); e.target.value = ""; set(false); }
 });
 
 let me = null, isAdmin = false, users = [], bets = [], txns = [], drinks = [], race = { isOpen: false, raceNumber: null };
@@ -296,10 +318,12 @@ function calcWin(b, usedEx) {
   return { exX, payout: r2(base + exX + teamX), bonus: r2(exX + teamX), capped: r2(capped) };
 }
 
-// ---------- Not-Einkauf-Timer (1 Minute, läuft lokal auf dem Handy des Challengers) ----------
+// ---------- Not-Einkauf-Challenge: Admin bestimmt den Challenger, nur er startet die Uhr, sie läuft bei allen ----------
 const TIMER_SEC = 60;
-let tmr = null, actx = null, wakeLock = null;
+let buy = { state: "idle" }, tmr = null, firedFor = null, actx = null, wakeLock = null;
 const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+const unlockAudio = () => { try { actx ||= new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch {} };
+document.addEventListener("click", unlockAudio); // Browser erlauben Ton erst nach einer Berührung
 function beep() {
   if (!actx) return;
   [0, .3, .6].forEach(t => {
@@ -308,21 +332,31 @@ function beep() {
     o.start(actx.currentTime + t); o.stop(actx.currentTime + t + .2);
   });
 }
-function timerEnd(label) {
-  clearInterval(tmr); tmr = null; wakeLock?.release().catch(() => {}); wakeLock = null;
-  $("timer-btn").textContent = "⏱️ Nochmal starten";
-  $("timer").style.color = ""; $("timer").textContent = label;
-}
-async function timerToggle() {
-  if (tmr) { timerEnd(fmt(TIMER_SEC)); $("timer-btn").textContent = "⏱️ Challenge starten"; return; }
-  try { actx ||= new (window.AudioContext || window.webkitAudioContext)(); await actx.resume(); } catch {} // Klick = Erlaubnis für den Ton
-  try { wakeLock = await navigator.wakeLock?.request("screen"); } catch {} // Display bleibt an
-  const end = Date.now() + TIMER_SEC * 1000;
-  $("timer-btn").textContent = "⏹️ Abbrechen";
+const wakeOn = async () => { if (!wakeLock) try { wakeLock = await navigator.wakeLock?.request("screen"); } catch {} };
+const wakeOff = () => { wakeLock?.release().catch(() => {}); wakeLock = null; };
+
+function renderBuyin() {
+  const ch = buy.challengerId, isCh = !!ch && ch === me?.uid, T = $("timer");
+  $("buy-chal").innerHTML = ch ? `Challenger: <b class="warn">${esc(buy.challengerName)}</b>` : "Noch kein Challenger bestimmt.";
+  $("buy-chal-adm").textContent = ch ? buy.challengerName : "–";
+  $("timer-btn").classList.toggle("hidden", !isCh);
+  $("timer-hint").textContent = !ch ? "Der Admin bestimmt, wer die Challenge annimmt."
+    : isCh ? "Du darfst die Uhr starten – sie läuft bei allen mit." : `Nur ${buy.challengerName} darf die Uhr starten.`;
+  clearInterval(tmr); tmr = null; T.style.color = "";
+  const run = buy.state === "running" && buy.startedAt;
+  if (!run) { T.textContent = fmt(TIMER_SEC); $("timer-btn").textContent = "⏱️ Challenge starten"; wakeOff(); return; }
+  const start = buy.startedAt.toMillis(), end = start + TIMER_SEC * 1000;
+  $("timer-btn").textContent = "⏹️ Abbrechen"; wakeOn();
   const tick = () => {
     const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-    $("timer").textContent = fmt(left); $("timer").style.color = left <= 10 ? "#ff5252" : "";
-    if (left <= 0) { timerEnd("Zeit! 🍺"); beep(); navigator.vibrate?.([300, 150, 300, 150, 600]); toast("⏱️ Zeit abgelaufen – Biere zählen!"); }
+    T.textContent = fmt(left); T.style.color = left <= 10 ? "#ff5252" : "";
+    if (left > 0) return;
+    clearInterval(tmr); tmr = null; wakeOff();
+    T.textContent = "Zeit! 🍺"; $("timer-btn").textContent = "⏱️ Nochmal starten";
+    const key = Math.round(start / 5000);
+    if (firedFor !== key && Date.now() - end < 5000) { // nur live, nicht beim späteren Öffnen der App
+      firedFor = key; beep(); navigator.vibrate?.([300, 150, 300, 150, 600]); toast("⏱️ Zeit abgelaufen – Biere zählen!");
+    }
   };
   tick(); tmr = setInterval(tick, 250);
 }
@@ -360,6 +394,7 @@ async function onUser(user) {
   L(collection(db, "users"), s => { users = s.docs.map(d => ({ id: d.id, ...d.data() })); renderUsers(); });
   L(collection(db, "bets"), s => { bets = s.docs.map(d => ({ id: d.id, ...d.data() })); renderBets(); });
   L(collection(db, "drinks"), s => { drinks = s.docs.map(d => ({ id: d.id, ...d.data() })); renderDoping(); renderAch(); });
+  L(doc(db, "settings", "buyinChallenge"), s => { buy = s.exists() ? s.data({ serverTimestamps: "estimate" }) : { state: "idle" }; renderBuyin(); });
   L(collection(db, "txns"), s => { txns = s.docs.map(d => ({ id: d.id, ...d.data() })); renderTxns(); renderAnalytics(); });
   L(doc(db, "settings", "race"), s => { race = s.exists() ? s.data() : { isOpen: false }; renderRace(); renderBets(); renderUsers(); });
   Object.keys(MODES).forEach(k => L(doc(db, "settings", k), s => { modes[k] = s.exists() && !!s.data().isOpen; renderModes(); }));
@@ -367,6 +402,18 @@ async function onUser(user) {
 onAuthStateChanged(auth, user => { if (!registering) onUser(user); });
 
 /* ---------- Rendering ---------- */
+function authMode(m) {
+  const reg = m === "register";
+  $("seg-login").classList.toggle("on", !reg); $("seg-reg").classList.toggle("on", reg);
+  $("reg-fields").classList.toggle("hidden", !reg);
+  $("btn-login").classList.toggle("hidden", reg); $("btn-register").classList.toggle("hidden", !reg);
+  $("password").autocomplete = reg ? "new-password" : "current-password";
+  $("password").placeholder = reg ? "Passwort (mind. 6 Zeichen)" : "Passwort";
+}
+document.addEventListener("keydown", e => { // Enter schickt das Formular ab
+  if (e.key === "Enter" && e.target.closest("#auth") && e.target.tagName === "INPUT")
+    ($("btn-login").classList.contains("hidden") ? $("btn-register") : $("btn-login")).click();
+});
 function tab(t) {
   document.querySelectorAll(".nav[data-tab]").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
   ["main", "ranking", "history", "stats", "analytics", "doping", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
@@ -601,10 +648,22 @@ document.addEventListener("toggle", e => {
 
 /* ---------- Aktionen (Transaktionen = kein Doppelklick-/Abbruch-Problem) ---------- */
 const A = {
+  authMode: d => authMode(d.m),
   nav: d => { tab(d.tab); menu(false); window.scrollTo(0, 0); },
   menu: () => menu(),
   menuClose: () => menu(false),
-  timer: () => timerToggle(),
+  async timer() { // nur der zugewiesene Challenger (Rules prüfen das ebenfalls)
+    unlockAudio();
+    const running = buy.state === "running" && buy.startedAt && Date.now() < buy.startedAt.toMillis() + TIMER_SEC * 1000;
+    await updateDoc(doc(db, "settings", "buyinChallenge"), running ? { state: "idle" } : { state: "running", startedAt: serverTimestamp() });
+  },
+  buyAssign() {
+    const id = $("adm-user").value, u = users.find(x => x.id === id);
+    if (!u) return toast("Bitte oben einen Spieler wählen.", true);
+    return setDoc(doc(db, "settings", "buyinChallenge"), { challengerId: id, challengerName: uname(u), state: "idle", startedAt: null })
+      .then(() => toast(`${uname(u)} nimmt die Challenge an.`));
+  },
+  buyReset: () => setDoc(doc(db, "settings", "buyinChallenge"), { challengerId: null, challengerName: "", state: "idle", startedAt: null }),
   regLock: () => setDoc(doc(db, "settings", "registration"), { locked: true }),
   regOpen: () => setDoc(doc(db, "settings", "registration"), { locked: false }),
   async drink(d) {
@@ -624,7 +683,7 @@ const A = {
   async register() {
     if (regLocked) return toast("Die Registrierung ist aktuell gesperrt.", true);
     const name = $("name").value.trim();
-    if (name.length < 2) return toast("Bitte einen Spitznamen (mind. 2 Zeichen) eingeben.", true);
+    if (name.length < 2) return toast("Bitte einen Benutzernamen (mind. 2 Zeichen) eingeben.", true);
     const file = $("avatar").files[0];
     if (!file) return toast("Bitte ein Profilbild hochladen!", true);
     const avatar = await resizeImage(file);
@@ -746,7 +805,13 @@ document.addEventListener("click", async e => {
   const el = e.target.closest("[data-act]"); if (!el) return;
   el.disabled = true;
   try { await A[el.dataset.act](el.dataset); }
-  catch (err) { toast(err.message.replace("Firebase: ", ""), true); }
+  catch (err) {
+    const known = { "auth/invalid-credential": "E-Mail oder Passwort ist falsch.", "auth/wrong-password": "E-Mail oder Passwort ist falsch.",
+      "auth/user-not-found": "E-Mail oder Passwort ist falsch.", "auth/invalid-email": "Bitte eine gültige E-Mail eingeben.",
+      "auth/email-already-in-use": "Diese E-Mail ist bereits registriert.", "auth/weak-password": "Das Passwort ist zu schwach (mind. 6 Zeichen).",
+      "auth/missing-password": "Bitte ein Passwort eingeben.", "auth/network-request-failed": "Keine Verbindung – bitte erneut versuchen." };
+    toast(known[err.code] || err.message.replace("Firebase: ", ""), true);
+  }
   finally { el.disabled = regLocked && el.dataset.act === "register"; }
 });
 </script>
