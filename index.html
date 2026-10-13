@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KC Kegelclub Race</title>
 <style>
-:root{--bg:#0f1215;--card:#181c21;--bd:#282e36;--red:#e2001a;--green:#00c853;--orange:#ff9100;--blue:#00b0ff;--mut:#8e99a8;--gold:#ffd700;--silver:#c0c0c0;--bronze:#cd7f32}
+:root{--bg:#0f1215;--card:#181c21;--bd:#282e36;--red:#e2001a;--green:#00c853;--orange:#ff9100;--blue:#00b0ff;--mut:#8e99a8}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 body{background:var(--bg);color:#fff;padding-bottom:40px}
 .hidden{display:none!important}
@@ -49,21 +49,6 @@ button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
 .banner{background:linear-gradient(90deg,#e2001a,#8a0010);padding:12px;border-radius:8px;font-weight:800;text-align:center;text-transform:uppercase;margin-bottom:12px}
 .lb{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd);font-size:.95rem}
 .lb:last-child{border:0}.lb .n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-
-/* PODIUM STYLES */
-.podium-container{display:flex;justify-content:center;align-items:flex-end;gap:12px;margin:20px 0 25px;padding:0 5px}
-.podium-step{display:flex;flex-direction:column;align-items:center;flex:1;max-width:110px}
-.podium-step .user-info{display:flex;flex-direction:column;align-items:center;margin-bottom:8px;text-align:center;width:100%}
-.podium-step .user-name{font-weight:800;font-size:.8rem;margin-top:4px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.podium-step .user-val{font-size:.8rem;font-weight:900;color:var(--green)}
-.podium-step .user-real{font-size:.7rem;font-weight:600;color:var(--mut)}
-.podium-box{width:100%;border-top-left-radius:8px;border-top-right-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:10px;font-weight:900;font-size:1.4rem;color:#0f1215;box-shadow:0 -4px 10px rgba(0,0,0,.3)}
-.podium-step.p1 .podium-box{height:100px;background:linear-gradient(180deg,var(--gold),#b89b00);border:1px solid #ffe552}
-.podium-step.p2 .podium-box{height:75px;background:linear-gradient(180deg,var(--silver),#8a8a8a);border:1px solid #e0e0e0}
-.podium-step.p3 .podium-box{height:55px;background:linear-gradient(180deg,var(--bronze),#8c531b);border:1px solid #e59b52}
-.podium-avatar-wrap{position:relative;display:inline-block}
-.podium-crown{position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:1rem;line-height:1}
-
 .bet{background:#111418;border:1px solid var(--bd);border-left:4px solid var(--orange);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.9rem}
 .bet.gewonnen{border-left-color:var(--green)}.bet.verloren{border-left-color:#555}
 .bet .r{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap}
@@ -88,7 +73,8 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <input type="email" id="email" placeholder="E-Mail-Adresse" autocomplete="email">
     <input type="password" id="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password">
     <button class="b" data-act="login">Einloggen</button>
-    <button class="b" data-act="register" style="background:#282e36;margin-top:8px">Registrieren (10 € Start)</button>
+    <p id="reg-lock" class="warn hidden" style="margin-top:10px;font-weight:700">🔒 Neue Registrierungen sind aktuell gesperrt.</p>
+    <button class="b" id="btn-register" data-act="register" style="background:#282e36;margin-top:8px">Registrieren (10 € Start)</button>
   </div>
 </div>
 
@@ -116,31 +102,16 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <!-- WETTEN -->
     <div id="page-main">
 
-      <!-- GUTHABEN HIGHLIGHT (MONEY & VIRTUELLES MONEY) -->
-      <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;background:linear-gradient(135deg,#181c21,#232931);border-left:4px solid var(--green)">
-        <div>
-          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--mut);font-weight:700">Money (Bargeld)</div>
-          <div id="my-real-balance-display" style="font-size:1.3rem;font-weight:900;color:#fff">0,00 €</div>
-        </div>
-        <div>
-          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--mut);font-weight:700">virtuell Money</div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div id="my-balance-display" style="font-size:1.3rem;font-weight:900;color:var(--green)">0,00 €</div>
-            <div id="my-balance-badge"></div>
-          </div>
-        </div>
-      </div>
-
       <div id="sp-bonus" class="card sp bonus hidden"><h2>🍻 Bier-Ex Poker</h2>
         <p>Nennt eure Zielzeit – der Mutigste tritt gegen die Stoppuhr an.</p><hr>
         <p><b class="ok">Geschafft:</b> Quote deiner nächsten Wette <b>×2,0</b>.</p>
         <p><b style="color:#ff1744">Nicht geschafft:</b> Quote deiner nächsten Wette <b>×0,5</b>.</p></div>
       <div id="sp-penalty" class="card sp penalty hidden"><h2>⚠️ Risiko-Runde: Das überlaufende Glas</h2>
         <p>Wir füllen reihum ein Bierglas auf.</p><hr>
-        <p style="color:#ff1744"><b>Wer es zum Überlaufen bringt, verliert sofort 2,00 € virtuell Money!</b></p></div>
+        <p style="color:#ff1744"><b>Wer es zum Überlaufen bringt, verliert sofort 2,00 € Guthaben!</b></p></div>
       <div id="sp-buyin" class="card sp buyin hidden"><h2>💸 Not-Einkauf (Bier-Flatrate)</h2>
-        <p>Money aufgebraucht? Trinke in 3 Minuten so viele Biere wie möglich.</p><hr>
-        <p><b style="color:#ffc400">Belohnung:</b> 1,00 € virtuell Money Bonus pro Bier (max. 4,00 €).</p></div>
+        <p>Guthaben aufgebraucht? Trinke in 3 Minuten so viele Biere wie möglich.</p><hr>
+        <p><b style="color:#ffc400">Belohnung:</b> 1,00 € pro Bier (max. 4,00 €).</p></div>
       <div id="sp-team" class="card sp team hidden"><h2>🤝 Team-Modus</h2>
         <p>Schließt euch zusammen und gebt eine Team-Wette ab.</p><hr>
         <p style="color:#b388ff">🔥 Im Gewinnfall gibt es den <b>1,5-fachen Gewinn</b>!</p></div>
@@ -153,9 +124,9 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
           <label for="bet-horse">Pferd / Tipp</label>
           <input id="bet-horse" placeholder="z. B. Pferd Nr. 3" maxlength="40">
           <label for="bet-amount">Einsatz (€)</label>
-          <input type="text" inputmode="decimal" id="bet-amount" placeholder="1,00">
+          <input type="number" inputmode="decimal" step="0.01" min="0.01" id="bet-amount" placeholder="1,00">
           <label for="bet-odds">Quote</label>
-          <input type="text" inputmode="decimal" id="bet-odds" placeholder="2.5">
+          <input type="number" inputmode="decimal" step="0.1" min="1.01" id="bet-odds" placeholder="2.5">
           <div id="team-box" class="hidden" style="margin:6px 0 12px;background:#231d38;padding:10px;border-radius:6px;border:1px solid #3d2f66">
             <label style="cursor:pointer;color:#fff;margin:0;display:flex;align-items:center;gap:10px">
               <input type="checkbox" id="bet-team" style="width:18px;height:18px;margin:0"> 🤝 Team-Wette (×1,5)</label>
@@ -170,23 +141,19 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 
     <!-- RANGLISTE -->
     <div id="page-ranking" class="hidden">
-      <div class="card">
-        <h2>🏆 Rangliste (virtuell Money)</h2>
-        <div id="podium"></div>
-        <div id="leaderboard"></div>
-      </div>
+      <div class="card"><h2>🏆 Rangliste</h2><div id="leaderboard"></div></div>
     </div>
 
     <!-- HISTORIE -->
     <div id="page-history" class="hidden"><div class="card"><h2>📜 Alle bisherigen Wetten</h2><div id="history-bets"></div></div>
-      <div class="card"><h2>💳 Manuelle Buchungen & Sonderpreise</h2><div id="txn-list"></div></div></div>
+      <div class="card"><h2>💳 Manuelle Buchungen</h2><div id="txn-list"></div></div></div>
 
     <!-- STATISTIK -->
     <div id="page-stats" class="hidden"><div class="card"><h2>📊 Statistik</h2><div id="achievements"></div></div></div>
 
     <!-- ANALYTICS -->
     <div id="page-analytics" class="hidden">
-      <p class="mut" style="font-size:.8rem;margin-bottom:12px">Verlauf des virtuell Money pro Rennen (Start: 10 €). Boni, Strafen und manuelle Buchungen fließen hier ein. Trend = Veränderung der letzten 3 Rennen.</p>
+      <p class="mut" style="font-size:.8rem;margin-bottom:12px">Guthaben-Verlauf pro Rennen, berechnet aus den Wetten (Start: 10 €). Strafen, Boni und manuelle Buchungen werden dem Rennen zugeordnet, in dem sie gebucht wurden. Ältere Buchungen aus der Zeit vor dem Log erscheinen als letzter Punkt „Jetzt“. Trend = Veränderung der letzten 3 Rennen.</p>
       <div id="analytics"></div>
     </div>
 
@@ -218,12 +185,16 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
       <select id="adm-user"></select>
       <label>🍻 Bier-Ex Ergebnis</label>
       <div class="row"><button class="s w" data-act="ex" data-m="2">🏆 2x</button><button class="s l" data-act="ex" data-m="0.5">❌ 0,5x</button><button class="s" data-act="ex" data-m="1">🔄 Reset</button></div>
-      <label>Virtuell Money Bonus / Strafe / Buchung ändern um (€, auch negativ)</label>
-      <input type="text" inputmode="decimal" id="adm-delta" placeholder="z. B. -2 oder 5">
-      <input id="adm-note" placeholder="Grund / Sonderpreis (optional)" maxlength="40">
-      <div class="row"><button class="s u" data-act="adjust">Virtuell Buchen</button><button class="s l" data-act="adjust" data-v="-2" data-n="Strafe">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="1" data-n="Bier-Bonus">+1 € Bier-Preis</button></div>
+      <label>Guthaben ändern um (€, auch negativ)</label>
+      <input type="number" inputmode="decimal" step="0.01" id="adm-delta" placeholder="z. B. -2">
+      <input id="adm-note" placeholder="Grund (optional)" maxlength="40">
+      <div class="row"><button class="s u" data-act="adjust">Buchen</button><button class="s l" data-act="adjust" data-v="-2" data-n="Strafe">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="1" data-n="Bier-Bonus">+1 € Bier</button></div>
 
-      <h3>Party-Modi & Sperren</h3><div id="mode-btns"></div>
+      <h3>Party-Modi</h3><div id="mode-btns"></div>
+
+      <h3>Registrierung</h3>
+      <p>Status: <b id="reg-status">-</b></p>
+      <div class="row"><button class="s l" data-act="regLock">🔒 Sperren</button><button class="s w" data-act="regOpen">🔓 Öffnen</button></div>
     </div></div>
   </div>
 </div>
@@ -234,22 +205,16 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8",
+  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8", // wird beim Deploy per GitHub Secret ersetzt
   authDomain: "kc-kegelclub.firebaseapp.com",
   projectId: "kc-kegelclub",
   storageBucket: "kc-kegelclub.firebasestorage.app",
   messagingSenderId: "269537570601",
   appId: "1:269537570601:web:3670cb28c7e183198c5138"
 };
-
+// Nur für die Anzeige. Die echte Absicherung passiert in firestore.rules!
 const ADMIN_EMAIL = "m.tobias98@gmx.de";
-const MODES = { 
-  bonus: "Bier-Ex Info", 
-  penalty: "Risiko-Runde (−2 €)", 
-  buyin: "Not-Einkauf", 
-  team: "Team-Modus (×1,5)",
-  regBlock: "🚫 Neuregistrierung sperren" 
-};
+const MODES = { bonus: "Bier-Ex Info", penalty: "Risiko-Runde (−2 €)", buyin: "Not-Einkauf", team: "Team-Modus (×1,5)" };
 
 const auth = getAuth(initializeApp(firebaseConfig));
 const db = getFirestore();
@@ -262,13 +227,7 @@ const av = (u, s = 32) => u?.avatar?.startsWith("data:image/jpeg;base64,")
   ? `<img class="av" style="width:${s}px;height:${s}px" src="${esc(u.avatar)}" alt="">`
   : `<span class="av" style="width:${s}px;height:${s}px;font-size:${s / 2}px">${esc((uname(u || {}) || "?")[0].toUpperCase())}</span>`;
 
-const numVal = id => {
-  const el = $(id);
-  if (!el) return NaN;
-  const v = el.value.trim().replace(",", ".");
-  return parseFloat(v);
-};
-
+// Bild mittig quadratisch zuschneiden, auf 128x128 verkleinern, als JPEG (~5-10 KB) kodieren
 function resizeImage(file, size = 128) {
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file), img = new Image();
@@ -299,7 +258,24 @@ function toast(msg, err) {
   clearTimeout(tt); tt = setTimeout(() => t.className = "", 3000);
 }
 
-onAuthStateChanged(auth, user => {
+/* ---------- Auth ---------- */
+// Transaktionen: ALLE Reads zuerst (parallel), danach nur noch Writes ohne weiteres await.
+// Verbindungsprobleme werden als verständliche Meldung ausgegeben (es wurde dann nichts gebucht).
+const tx = fn => runTransaction(db, fn).catch(e => {
+  if (/unavailable|offline|network|before all writes|deadline|aborted|failed-precondition/i.test(`${e.code} ${e.message}`))
+    throw new Error("Verbindungsproblem – bitte erneut versuchen. Es wurde nichts gebucht.");
+  throw e;
+});
+
+let regLocked = false, registering = false;
+// Auch ohne Login lesbar (siehe Rules), damit die Login-Seite den Status kennt
+onSnapshot(doc(db, "settings", "registration"), s => {
+  regLocked = s.exists() && s.data().locked === true;
+  $("reg-lock").classList.toggle("hidden", !regLocked);
+  $("btn-register").disabled = regLocked;
+  $("reg-status").textContent = regLocked ? "GESPERRT – niemand kann sich neu registrieren" : "OFFEN";
+}, () => {});
+function onUser(user) {
   unsubs.forEach(u => u()); unsubs = [];
   me = user; isAdmin = !!user && user.email === ADMIN_EMAIL;
   $("auth").classList.toggle("hidden", !!user);
@@ -314,8 +290,10 @@ onAuthStateChanged(auth, user => {
   L(collection(db, "txns"), s => { txns = s.docs.map(d => ({ id: d.id, ...d.data() })); renderTxns(); renderAnalytics(); });
   L(doc(db, "settings", "race"), s => { race = s.exists() ? s.data() : { isOpen: false }; renderRace(); renderBets(); });
   Object.keys(MODES).forEach(k => L(doc(db, "settings", k), s => { modes[k] = s.exists() && !!s.data().isOpen; renderModes(); }));
-});
+}
+onAuthStateChanged(auth, user => { if (!registering) onUser(user); });
 
+/* ---------- Rendering ---------- */
 function tab(t) {
   document.querySelectorAll(".nav[data-tab]").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
   ["main", "ranking", "history", "stats", "analytics", "doping", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
@@ -328,71 +306,17 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") menu(false);
 
 function renderUsers() {
   const sorted = [...users].sort((a, b) => b.balance - a.balance);
-  
-  if (sorted.length > 0) {
-    const top3 = [sorted[1], sorted[0], sorted[2]];
-    const ranks = [2, 1, 3];
-    const classes = ["p2", "p1", "p3"];
-
-    let podiumHtml = `<div class="podium-container">`;
-    top3.forEach((u, idx) => {
-      if (u) {
-        const rank = ranks[idx];
-        const cls = classes[idx];
-        const crown = rank === 1 ? `<div class="podium-crown">👑</div>` : "";
-        const badge = (u.oddsMultiplier === 2) ? `<span class="badge w" style="font-size:8px">2x</span>` : (u.oddsMultiplier === 0.5) ? `<span class="badge l" style="font-size:8px">0,5x</span>` : "";
-        const realM = u.realBalance ?? 10;
-
-        podiumHtml += `
-          <div class="podium-step ${cls}">
-            <div class="user-info">
-              <div class="podium-avatar-wrap">
-                ${crown}
-                ${av(u, rank === 1 ? 52 : 42)}
-              </div>
-              <div class="user-name">${esc(uname(u))} ${badge}</div>
-              <div class="user-val">${eur(u.balance)}</div>
-              <div class="user-real">(${eur(realM)})</div>
-            </div>
-            <div class="podium-box">${rank}</div>
-          </div>`;
-      }
-    });
-    podiumHtml += `</div>`;
-    $("podium").innerHTML = podiumHtml;
-
-    const rest = sorted.slice(3);
-    if (rest.length > 0) {
-      $("leaderboard").innerHTML = `<hr>` + rest.map((u, i) => {
-        const m = u.oddsMultiplier || 1;
-        const bd = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
-        const realM = u.realBalance ?? 10;
-        return `<div class="lb"><span class="n">${i + 4}. ${av(u)} <b>${esc(uname(u))}</b> ${bd}</span>
-          <div style="text-align:right"><b class="ok">${eur(u.balance)}</b><div class="mut" style="font-size:.75rem">(${eur(realM)})</div></div></div>`;
-      }).join("");
-    } else {
-      $("leaderboard").innerHTML = "";
-    }
-  } else {
-    $("podium").innerHTML = "";
-    $("leaderboard").innerHTML = `<p class="mut" style="text-align:center">Noch keine Spieler.</p>`;
-  }
-
+  $("leaderboard").innerHTML = sorted.map((u, i) => {
+    const m = u.oddsMultiplier || 1;
+    const bd = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
+    return `<div class="lb"><span class="n">${i + 1}. ${av(u)} <b>${esc(uname(u))}</b> ${bd}</span><b class="ok">${eur(u.balance)}</b></div>`;
+  }).join("") || `<p class="mut">Noch keine Spieler.</p>`;
   if (isAdmin) {
     const sel = $("adm-user"), cur = sel.value;
-    sel.innerHTML = `<option value="">-- Spieler --</option>` + sorted.map(u => `<option value="${esc(u.id)}">${esc(uname(u))} (Money: ${eur(u.realBalance ?? 10)}, virtuell Money: ${eur(u.balance)}, ${u.oddsMultiplier || 1}x)</option>`).join("");
+    sel.innerHTML = `<option value="">-- Spieler --</option>` + sorted.map(u => `<option value="${esc(u.id)}">${esc(uname(u))} (${eur(u.balance)}, ${u.oddsMultiplier || 1}x)</option>`).join("");
     sel.value = cur;
   }
   const mine = users.find(u => u.id === me?.uid), m = mine?.oddsMultiplier || 1, box = $("mult-info");
-  
-  if (mine) {
-    const realB = mine.realBalance ?? 10;
-    $("my-real-balance-display").textContent = eur(realB);
-    $("my-balance-display").textContent = eur(mine.balance);
-    const badgeHtml = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
-    $("my-balance-badge").innerHTML = badgeHtml;
-  }
-
   box.classList.toggle("hidden", m === 1);
   if (m !== 1) {
     const win = m === 2;
@@ -418,9 +342,7 @@ function renderRace() {
 }
 
 function renderModes() {
-  Object.keys(MODES).forEach(k => {
-    if (k !== "regBlock") $("sp-" + k).classList.toggle("hidden", !modes[k]);
-  });
+  Object.keys(MODES).forEach(k => $("sp-" + k).classList.toggle("hidden", !modes[k]));
   $("team-box").classList.toggle("hidden", !modes.team);
   if (!modes.team) $("bet-team").checked = false;
   $("mode-btns").innerHTML = Object.entries(MODES).map(([k, l]) =>
@@ -509,7 +431,7 @@ function renderDoping() {
   $("drink-board").innerHTML = st.map(x => `<div style="padding:10px 0;border-bottom:1px solid var(--bd)">
     <div style="display:flex;align-items:center;gap:8px">${av(x.u, 28)}<b style="flex:1;min-width:0">${esc(uname(x.u))}</b><b class="warn">${lit(x.ml)}</b></div>
     <div style="height:6px;background:#111418;border-radius:3px;margin:6px 0"><div style="height:100%;width:${x.ml / max * 100}%;background:#ffb300;border-radius:3px"></div></div>
-    <div class="mut" style="font-size:.8rem">${SIZES.filter(z => x.by[z]).map(z => `${x.by[z]}×${lit(z)}`).join(" · ") || "Noch nichts getrunken"}</div></div>`).join("")
+    <div class="mut" style="font-size:.8rem">${SIZES.filter(z => x.by[z]).map(z => `${x.by[z]}× ${lit(z)}`).join(" · ") || "Noch nichts getrunken"}</div></div>`).join("")
     || `<p class="mut">Noch keine Spieler.</p>`;
 }
 
@@ -521,9 +443,11 @@ function renderTxns() {
     || `<p class="mut">Noch keine Buchungen.</p>`;
 }
 
+/* ---------- Analytics ---------- */
 const raceList = () => [...new Set([...bets.map(b => b.raceNumber), ...txns.map(t => t.raceNumber), race.isOpen ? race.raceNumber : null]
   .filter(r => r != null).map(String))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
+// Guthaben nach jedem Rennen: Start 10 € + Wetten + manuelle Buchungen aus dem Log
 function series(u, races) {
   const mine = txns.filter(t => t.userId === u.id);
   let y = 10 + mine.filter(t => t.raceNumber == null).reduce((a, t) => a + t.delta, 0);
@@ -561,7 +485,7 @@ function chart(pts, color) {
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="Guthaben-Verlauf">${grid}
     <polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${dots}${xl}
     <text x="${L + pw / 2}" y="${H - 3}" text-anchor="middle" fill="#8e99a8" font-size="9">Rennen</text>
-    <text transform="rotate(-90 9 ${cy})" x="9" y="${cy}" text-anchor="middle" fill="#8e99a8" font-size="9">Virtuell Money (€)</text></svg>`;
+    <text transform="rotate(-90 9 ${cy})" x="9" y="${cy}" text-anchor="middle" fill="#8e99a8" font-size="9">Guthaben (€)</text></svg>`;
 }
 
 function renderAnalytics() {
@@ -569,14 +493,14 @@ function renderAnalytics() {
   $("analytics").innerHTML = [...users].sort((a, b) => b.balance - a.balance).map(u => {
     const pts = series(u, races), t = trend(pts);
     return `<div class="card"><div style="display:flex;align-items:center;gap:10px">${av(u, 36)}
-      <div style="flex:1;min-width:0"><b>${esc(uname(u))}</b><div class="mut" style="font-size:.8rem">Virtuell Money: ${eur(u.balance)}</div></div></div>
+      <div style="flex:1;min-width:0"><b>${esc(uname(u))}</b><div class="mut" style="font-size:.8rem">Aktuell ${eur(u.balance)}</div></div></div>
       <div style="font-weight:800;color:${t.color};margin:10px 0 2px">${t.txt}</div>
       <div class="mut" style="font-size:.8rem;margin-bottom:10px">Trend der letzten 3 Rennen: ${t.d > 0 ? "+" : ""}${eur(t.d)}</div>${chart(pts, t.color)}</div>`;
   }).join("") || `<p class="mut">Noch keine Spieler.</p>`;
 }
 
 function preview() {
-  const a = numVal("bet-amount"), o = numVal("bet-odds");
+  const a = parseFloat($("bet-amount").value), o = parseFloat($("bet-odds").value);
   const m = users.find(u => u.id === me?.uid)?.oddsMultiplier || 1;
   $("preview").textContent = a > 0 && o > 0 ? `Möglicher Gewinn: ${eur(a * o * m * ($("bet-team").checked ? 1.5 : 1))}` : "";
 }
@@ -586,10 +510,13 @@ document.addEventListener("toggle", e => {
   e.target.open ? openRaces.add(k) : openRaces.delete(k);
 }, true);
 
+/* ---------- Aktionen (Transaktionen = kein Doppelklick-/Abbruch-Problem) ---------- */
 const A = {
   nav: d => { tab(d.tab); menu(false); window.scrollTo(0, 0); },
   menu: () => menu(),
   menuClose: () => menu(false),
+  regLock: () => setDoc(doc(db, "settings", "registration"), { locked: true }),
+  regOpen: () => setDoc(doc(db, "settings", "registration"), { locked: false }),
   async drink(d) {
     const mine = users.find(u => u.id === me.uid);
     await setDoc(doc(collection(db, "drinks")), { userId: me.uid, userName: uname(mine || { email: me.email }), ml: Number(d.ml), createdAt: serverTimestamp() });
@@ -605,53 +532,40 @@ const A = {
   login: () => signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value),
   logout: () => { menu(false); return signOut(auth); },
   async register() {
-    const email = $("email").value.trim();
-    if (modes.regBlock && email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-      return toast("Die Neuregistrierung ist aktuell vom Admin gesperrt!", true);
-    }
+    if (regLocked) return toast("Die Registrierung ist aktuell gesperrt.", true);
     const name = $("name").value.trim();
     if (name.length < 2) return toast("Bitte einen Spitznamen (mind. 2 Zeichen) eingeben.", true);
     const file = $("avatar").files[0];
     if (!file) return toast("Bitte ein Profilbild hochladen!", true);
     const avatar = await resizeImage(file);
-    const res = await createUserWithEmailAndPassword(auth, email, $("password").value);
-    await setDoc(doc(db, "users", res.user.uid), { email, name, avatar, realBalance: 10, balance: 10, oddsMultiplier: 1 });
-    toast("Registriert mit 10 € Startguthaben!");
+    const email = $("email").value.trim();
+    registering = true; // Listener erst starten, wenn das Spieler-Dokument existiert
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email, $("password").value);
+      try { await setDoc(doc(db, "users", res.user.uid), { email, name, avatar, balance: 10, oddsMultiplier: 1 }); }
+      catch (e) { await res.user.delete().catch(() => {}); throw new Error("Registrierung nicht möglich (evtl. gesperrt)."); }
+      onUser(res.user);
+      toast("Registriert mit 10 € Startguthaben!");
+    } finally { registering = false; }
   },
 
   async place() {
-    const horse = $("bet-horse").value.trim();
-    const amount = r2(numVal("bet-amount"));
-    const odds = numVal("bet-odds");
-    const team = modes.team && $("bet-team").checked;
-
+    const horse = $("bet-horse").value.trim(), amount = r2(parseFloat($("bet-amount").value));
+    const odds = parseFloat($("bet-odds").value), team = modes.team && $("bet-team").checked;
     if (!horse || !(amount > 0) || !(odds >= 1.01)) return toast("Bitte Tipp, Einsatz und Quote (≥ 1,01) korrekt ausfüllen.", true);
     if (!confirm(`${eur(amount)} auf "${horse}" setzen?`)) return;
     const uref = doc(db, "users", me.uid), bref = doc(collection(db, "bets"));
-    const num = await runTransaction(db, async t => {
-      // 1. LESEZUGRIFFE ZUERST
-      const rsSnap = await t.get(doc(db, "settings", "race"));
-      const rs = rsSnap.data();
-      if (!rs?.isOpen) throw new Error("Es ist kein Rennen offen!");
-
-      const uSnap = await t.get(uref);
-      const u = uSnap.data();
-      const realBal = u.realBalance ?? u.balance;
-      const virtBal = u.balance;
-      if (realBal < amount) throw new Error("Nicht genug Money zum Tippen vorhanden!");
-      
+    const num = await tx(async t => {
+      const [rs, us] = await Promise.all([t.get(doc(db, "settings", "race")), t.get(uref)]); // alle Reads zuerst
+      const r = rs.data(), u = us.data();
+      if (!r?.isOpen) throw new Error("Es ist kein Rennen offen!");
+      if (!u || u.balance < amount) throw new Error("Nicht genug Guthaben!");
       const ex = u.oddsMultiplier || 1, finalOdds = odds * ex;
-      
-      // 2. SCHREIBZUGRIFFE DANACH
-      t.update(uref, { 
-        realBalance: r2(realBal - amount), 
-        balance: r2(virtBal - amount), 
-        oddsMultiplier: 1 
-      });
-      t.set(bref, { raceNumber: String(rs.raceNumber), userId: me.uid, userName: uname(u), horse, amount, odds,
+      t.update(uref, { balance: r2(u.balance - amount), oddsMultiplier: 1 });
+      t.set(bref, { raceNumber: String(r.raceNumber), userId: me.uid, userName: uname(u), horse, amount, odds,
         finalOdds, exMultiplier: ex, isTeam: !!team, possibleWin: r2(amount * finalOdds * (team ? 1.5 : 1)),
         status: "offen", createdAt: serverTimestamp() });
-      return rs.raceNumber;
+      return r.raceNumber;
     });
     ["bet-horse", "bet-amount", "bet-odds"].forEach(i => $(i).value = "");
     $("bet-team").checked = false; preview();
@@ -661,65 +575,31 @@ const A = {
   async win(d) {
     if (!confirm("Gewinn auszahlen?")) return;
     const bref = doc(db, "bets", d.id);
-    await runTransaction(db, async t => {
-      // 1. LESEZUGRIFFE ZUERST
-      const bSnap = await t.get(bref);
-      const b = bSnap.data();
+    await tx(async t => {
+      const b = (await t.get(bref)).data(); // einziger Read, danach nur Writes
       if (!b || b.status !== "offen") throw new Error("Wette ist nicht mehr offen!");
-
-      const uRef = doc(db, "users", b.userId);
-      const uSnap = await t.get(uRef);
-      const u = uSnap.data();
-
-      // 2. SCHREIBZUGRIFFE DANACH
-      const realBal = u.realBalance ?? u.balance;
-      const virtBal = u.balance;
-
       t.update(bref, { status: "gewonnen" });
-      t.update(uRef, { 
-        realBalance: r2(realBal + b.possibleWin),
-        balance: r2(virtBal + b.possibleWin) 
-      });
+      t.update(doc(db, "users", b.userId), { balance: increment(b.possibleWin) });
     });
     toast("Ausgezahlt!");
   },
-
   async lose(d) {
     if (!confirm("Als verloren markieren?")) return;
     const bref = doc(db, "bets", d.id);
-    await runTransaction(db, async t => {
-      // Lesezugriff vor Schreibzugriff
-      const bSnap = await t.get(bref);
-      const b = bSnap.data();
+    await tx(async t => {
+      const b = (await t.get(bref)).data();
       if (!b || b.status !== "offen") throw new Error("Wette ist nicht mehr offen!");
-
       t.update(bref, { status: "verloren" });
     });
-    toast("Als verloren markiert!");
   },
-
   async del(d) {
     if (!confirm("Wette stornieren? Der Einsatz wird erstattet (ein ausgezahlter Gewinn wird abgezogen).")) return;
     const bref = doc(db, "bets", d.id);
-    await runTransaction(db, async t => {
-      // 1. LESEZUGRIFFE ZUERST
-      const bSnap = await t.get(bref);
-      const b = bSnap.data();
+    await tx(async t => {
+      const b = (await t.get(bref)).data();
       if (!b) throw new Error("Wette existiert nicht mehr!");
-
-      const uRef = doc(db, "users", b.userId);
-      const uSnap = await t.get(uRef);
-      const u = uSnap.data();
-
-      // 2. SCHREIBZUGRIFFE DANACH
       const refund = b.status === "gewonnen" ? b.amount - b.possibleWin : b.amount;
-      const realBal = u.realBalance ?? u.balance;
-      const virtBal = u.balance;
-
-      t.update(uRef, { 
-        realBalance: r2(realBal + refund),
-        balance: r2(virtBal + refund) 
-      });
+      t.update(doc(db, "users", b.userId), { balance: increment(refund) });
       t.delete(bref);
     });
     toast("Storniert!");
@@ -739,18 +619,18 @@ const A = {
   },
   async adjust(d) {
     const id = $("adm-user").value; if (!id) return toast("Bitte Spieler wählen.", true);
-    const rawVal = d.v ?? numVal("adm-delta");
-    const v = r2(typeof rawVal === "number" ? rawVal : parseFloat(String(rawVal).replace(",", ".")));
-    
-    if (!v || isNaN(v)) return toast("Bitte Betrag eingeben.", true);
+    const v = r2(parseFloat(d.v ?? $("adm-delta").value));
+    if (!v) return toast("Bitte Betrag eingeben.", true);
     const u = users.find(x => x.id === id), rl = raceList();
     const rn = race.isOpen ? String(race.raceNumber) : (rl[rl.length - 1] ?? null);
-    const note = d.n || $("adm-note").value.trim() || "Sonderpreis / Manuelle Buchung";
-    await runTransaction(db, async t => {
-      t.update(doc(db, "users", id), { balance: increment(v) });
+    const note = d.n || $("adm-note").value.trim() || "Manuelle Buchung";
+    const uref = doc(db, "users", id);
+    await tx(async t => {
+      if (!(await t.get(uref)).exists()) throw new Error("Spieler nicht gefunden."); // Read zuerst
+      t.update(uref, { balance: increment(v) });
       t.set(doc(collection(db, "txns")), { userId: id, userName: uname(u), delta: v, note, raceNumber: rn, createdAt: serverTimestamp() });
     });
-    $("adm-delta").value = ""; $("adm-note").value = ""; toast(`Virtuell ${v > 0 ? "+" : ""}${eur(v)} gebucht.`);
+    $("adm-delta").value = ""; $("adm-note").value = ""; toast(`${v > 0 ? "+" : ""}${eur(v)} gebucht.`);
   }
 };
 
@@ -759,7 +639,7 @@ document.addEventListener("click", async e => {
   el.disabled = true;
   try { await A[el.dataset.act](el.dataset); }
   catch (err) { toast(err.message.replace("Firebase: ", ""), true); }
-  finally { el.disabled = false; }
+  finally { el.disabled = regLocked && el.dataset.act === "register"; }
 });
 </script>
 </body>
