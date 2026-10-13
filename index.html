@@ -56,6 +56,7 @@ button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
 .podium-step .user-info{display:flex;flex-direction:column;align-items:center;margin-bottom:8px;text-align:center;width:100%}
 .podium-step .user-name{font-weight:800;font-size:.8rem;margin-top:4px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .podium-step .user-val{font-size:.8rem;font-weight:900;color:var(--green)}
+.podium-step .user-real{font-size:.7rem;font-weight:600;color:var(--mut)}
 .podium-box{width:100%;border-top-left-radius:8px;border-top-right-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:10px;font-weight:900;font-size:1.4rem;color:#0f1215;box-shadow:0 -4px 10px rgba(0,0,0,.3)}
 .podium-step.p1 .podium-box{height:100px;background:linear-gradient(180deg,var(--gold),#b89b00);border:1px solid #ffe552}
 .podium-step.p2 .podium-box{height:75px;background:linear-gradient(180deg,var(--silver),#8a8a8a);border:1px solid #e0e0e0}
@@ -115,14 +116,14 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <!-- WETTEN -->
     <div id="page-main">
 
-      <!-- GUTHABEN HIGHLIGHT (ECHT & VIRTUELL) -->
+      <!-- GUTHABEN HIGHLIGHT (MONEY & VIRTUELLES MONEY) -->
       <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;background:linear-gradient(135deg,#181c21,#232931);border-left:4px solid var(--green)">
         <div>
-          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--mut);font-weight:700">Reales Cash (zum Tippen)</div>
+          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--mut);font-weight:700">Money (Bargeld)</div>
           <div id="my-real-balance-display" style="font-size:1.3rem;font-weight:900;color:#fff">0,00 €</div>
         </div>
         <div>
-          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--mut);font-weight:700">Virtueller Gesamtwert</div>
+          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--mut);font-weight:700">virtuell Money</div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div id="my-balance-display" style="font-size:1.3rem;font-weight:900;color:var(--green)">0,00 €</div>
             <div id="my-balance-badge"></div>
@@ -136,10 +137,10 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
         <p><b style="color:#ff1744">Nicht geschafft:</b> Quote deiner nächsten Wette <b>×0,5</b>.</p></div>
       <div id="sp-penalty" class="card sp penalty hidden"><h2>⚠️ Risiko-Runde: Das überlaufende Glas</h2>
         <p>Wir füllen reihum ein Bierglas auf.</p><hr>
-        <p style="color:#ff1744"><b>Wer es zum Überlaufen bringt, verliert sofort 2,00 € virtuelles Guthaben!</b></p></div>
+        <p style="color:#ff1744"><b>Wer es zum Überlaufen bringt, verliert sofort 2,00 € virtuell Money!</b></p></div>
       <div id="sp-buyin" class="card sp buyin hidden"><h2>💸 Not-Einkauf (Bier-Flatrate)</h2>
-        <p>Guthaben aufgebraucht? Trinke in 3 Minuten so viele Biere wie möglich.</p><hr>
-        <p><b style="color:#ffc400">Belohnung:</b> 1,00 € virtueller Bonus pro Bier (max. 4,00 €).</p></div>
+        <p>Money aufgebraucht? Trinke in 3 Minuten so viele Biere wie möglich.</p><hr>
+        <p><b style="color:#ffc400">Belohnung:</b> 1,00 € virtuell Money Bonus pro Bier (max. 4,00 €).</p></div>
       <div id="sp-team" class="card sp team hidden"><h2>🤝 Team-Modus</h2>
         <p>Schließt euch zusammen und gebt eine Team-Wette ab.</p><hr>
         <p style="color:#b388ff">🔥 Im Gewinnfall gibt es den <b>1,5-fachen Gewinn</b>!</p></div>
@@ -170,7 +171,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <!-- RANGLISTE -->
     <div id="page-ranking" class="hidden">
       <div class="card">
-        <h2>🏆 Rangliste (Virtueller Gesamtwert)</h2>
+        <h2>🏆 Rangliste (virtuell Money)</h2>
         <div id="podium"></div>
         <div id="leaderboard"></div>
       </div>
@@ -185,7 +186,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 
     <!-- ANALYTICS -->
     <div id="page-analytics" class="hidden">
-      <p class="mut" style="font-size:.8rem;margin-bottom:12px">Verlauf des virtuellen Gesamtwerts pro Rennen (Start: 10 €). Boni, Strafen und manuelle Buchungen fließen hier ein. Trend = Veränderung der letzten 3 Rennen.</p>
+      <p class="mut" style="font-size:.8rem;margin-bottom:12px">Verlauf des virtuell Money pro Rennen (Start: 10 €). Boni, Strafen und manuelle Buchungen fließen hier ein. Trend = Veränderung der letzten 3 Rennen.</p>
       <div id="analytics"></div>
     </div>
 
@@ -217,7 +218,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
       <select id="adm-user"></select>
       <label>🍻 Bier-Ex Ergebnis</label>
       <div class="row"><button class="s w" data-act="ex" data-m="2">🏆 2x</button><button class="s l" data-act="ex" data-m="0.5">❌ 0,5x</button><button class="s" data-act="ex" data-m="1">🔄 Reset</button></div>
-      <label>Virtuellen Bonus / Strafe / Buchung ändern um (€, auch negativ)</label>
+      <label>Virtuell Money Bonus / Strafe / Buchung ändern um (€, auch negativ)</label>
       <input type="text" inputmode="decimal" id="adm-delta" placeholder="z. B. -2 oder 5">
       <input id="adm-note" placeholder="Grund / Sonderpreis (optional)" maxlength="40">
       <div class="row"><button class="s u" data-act="adjust">Virtuell Buchen</button><button class="s l" data-act="adjust" data-v="-2" data-n="Strafe">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="1" data-n="Bier-Bonus">+1 € Bier-Preis</button></div>
@@ -326,7 +327,6 @@ function menu(open) {
 document.addEventListener("keydown", e => { if (e.key === "Escape") menu(false); });
 
 function renderUsers() {
-  // Sortierung für Rangliste nach virtuellem Guthaben (balance)
   const sorted = [...users].sort((a, b) => b.balance - a.balance);
   
   if (sorted.length > 0) {
@@ -341,6 +341,7 @@ function renderUsers() {
         const cls = classes[idx];
         const crown = rank === 1 ? `<div class="podium-crown">👑</div>` : "";
         const badge = (u.oddsMultiplier === 2) ? `<span class="badge w" style="font-size:8px">2x</span>` : (u.oddsMultiplier === 0.5) ? `<span class="badge l" style="font-size:8px">0,5x</span>` : "";
+        const realM = u.realBalance ?? 10;
 
         podiumHtml += `
           <div class="podium-step ${cls}">
@@ -351,6 +352,7 @@ function renderUsers() {
               </div>
               <div class="user-name">${esc(uname(u))} ${badge}</div>
               <div class="user-val">${eur(u.balance)}</div>
+              <div class="user-real">(${eur(realM)})</div>
             </div>
             <div class="podium-box">${rank}</div>
           </div>`;
@@ -364,7 +366,9 @@ function renderUsers() {
       $("leaderboard").innerHTML = `<hr>` + rest.map((u, i) => {
         const m = u.oddsMultiplier || 1;
         const bd = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
-        return `<div class="lb"><span class="n">${i + 4}. ${av(u)} <b>${esc(uname(u))}</b> ${bd}</span><b class="ok">${eur(u.balance)}</b></div>`;
+        const realM = u.realBalance ?? 10;
+        return `<div class="lb"><span class="n">${i + 4}. ${av(u)} <b>${esc(uname(u))}</b> ${bd}</span>
+          <div style="text-align:right"><b class="ok">${eur(u.balance)}</b><div class="mut" style="font-size:.75rem">(${eur(realM)})</div></div></div>`;
       }).join("");
     } else {
       $("leaderboard").innerHTML = "";
@@ -376,7 +380,7 @@ function renderUsers() {
 
   if (isAdmin) {
     const sel = $("adm-user"), cur = sel.value;
-    sel.innerHTML = `<option value="">-- Spieler --</option>` + sorted.map(u => `<option value="${esc(u.id)}">${esc(uname(u))} (Real: ${eur(u.realBalance ?? 10)}, Virtuell: ${eur(u.balance)}, ${u.oddsMultiplier || 1}x)</option>`).join("");
+    sel.innerHTML = `<option value="">-- Spieler --</option>` + sorted.map(u => `<option value="${esc(u.id)}">${esc(uname(u))} (Money: ${eur(u.realBalance ?? 10)}, virtuell Money: ${eur(u.balance)}, ${u.oddsMultiplier || 1}x)</option>`).join("");
     sel.value = cur;
   }
   const mine = users.find(u => u.id === me?.uid), m = mine?.oddsMultiplier || 1, box = $("mult-info");
@@ -557,7 +561,7 @@ function chart(pts, color) {
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="Guthaben-Verlauf">${grid}
     <polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${dots}${xl}
     <text x="${L + pw / 2}" y="${H - 3}" text-anchor="middle" fill="#8e99a8" font-size="9">Rennen</text>
-    <text transform="rotate(-90 9 ${cy})" x="9" y="${cy}" text-anchor="middle" fill="#8e99a8" font-size="9">Guthaben (€)</text></svg>`;
+    <text transform="rotate(-90 9 ${cy})" x="9" y="${cy}" text-anchor="middle" fill="#8e99a8" font-size="9">Virtuell Money (€)</text></svg>`;
 }
 
 function renderAnalytics() {
@@ -565,7 +569,7 @@ function renderAnalytics() {
   $("analytics").innerHTML = [...users].sort((a, b) => b.balance - a.balance).map(u => {
     const pts = series(u, races), t = trend(pts);
     return `<div class="card"><div style="display:flex;align-items:center;gap:10px">${av(u, 36)}
-      <div style="flex:1;min-width:0"><b>${esc(uname(u))}</b><div class="mut" style="font-size:.8rem">Gesamt: ${eur(u.balance)}</div></div></div>
+      <div style="flex:1;min-width:0"><b>${esc(uname(u))}</b><div class="mut" style="font-size:.8rem">Virtuell Money: ${eur(u.balance)}</div></div></div>
       <div style="font-weight:800;color:${t.color};margin:10px 0 2px">${t.txt}</div>
       <div class="mut" style="font-size:.8rem;margin-bottom:10px">Trend der letzten 3 Rennen: ${t.d > 0 ? "+" : ""}${eur(t.d)}</div>${chart(pts, t.color)}</div>`;
   }).join("") || `<p class="mut">Noch keine Spieler.</p>`;
@@ -601,15 +605,17 @@ const A = {
   login: () => signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value),
   logout: () => { menu(false); return signOut(auth); },
   async register() {
-    if (modes.regBlock) return toast("Die Neuregistrierung ist aktuell vom Admin gesperrt!", true);
+    const email = $("email").value.trim();
+    // Admin darf sich IMMER registrieren, auch wenn neuregistrierungen gesperrt sind
+    if (modes.regBlock && email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      return toast("Die Neuregistrierung ist aktuell vom Admin gesperrt!", true);
+    }
     const name = $("name").value.trim();
     if (name.length < 2) return toast("Bitte einen Spitznamen (mind. 2 Zeichen) eingeben.", true);
     const file = $("avatar").files[0];
     if (!file) return toast("Bitte ein Profilbild hochladen!", true);
     const avatar = await resizeImage(file);
-    const email = $("email").value.trim();
     const res = await createUserWithEmailAndPassword(auth, email, $("password").value);
-    // Beides startet bei 10 €
     await setDoc(doc(db, "users", res.user.uid), { email, name, avatar, realBalance: 10, balance: 10, oddsMultiplier: 1 });
     toast("Registriert mit 10 € Startguthaben!");
   },
@@ -627,12 +633,11 @@ const A = {
       const rs = (await t.get(doc(db, "settings", "race"))).data();
       if (!rs?.isOpen) throw new Error("Es ist kein Rennen offen!");
       const u = (await t.get(uref)).data();
-      const realBal = u.realBalance ?? u.balance; // Fallback für ältere User
+      const realBal = u.realBalance ?? u.balance;
       const virtBal = u.balance;
-      if (realBal < amount) throw new Error("Nicht genug echtes Cash zum Tippen vorhanden!");
+      if (realBal < amount) throw new Error("Nicht genug Money zum Tippen vorhanden!");
       
       const ex = u.oddsMultiplier || 1, finalOdds = odds * ex;
-      // Abzug von echtem Cash UND virtuellem Guthaben
       t.update(uref, { 
         realBalance: r2(realBal - amount), 
         balance: r2(virtBal - amount), 
@@ -658,7 +663,6 @@ const A = {
       const u = (await t.get(doc(db, "users", b.userId))).data();
       const realBal = u.realBalance ?? u.balance;
       const virtBal = u.balance;
-      // Gutschrift auf echtes Cash UND virtuelles Guthaben
       t.update(doc(db, "users", b.userId), { 
         realBalance: r2(realBal + b.possibleWin),
         balance: r2(virtBal + b.possibleWin) 
@@ -673,7 +677,6 @@ const A = {
       const b = (await t.get(bref)).data();
       if (!b || b.status !== "offen") throw new Error("Wette ist nicht mehr offen!");
       t.update(bref, { status: "verloren" });
-      // Einsatz ist weg, wurde beim Platzieren bereits von beiden abgezogen
     });
   },
   async del(d) {
@@ -717,7 +720,6 @@ const A = {
     const rn = race.isOpen ? String(race.raceNumber) : (rl[rl.length - 1] ?? null);
     const note = d.n || $("adm-note").value.trim() || "Sonderpreis / Manuelle Buchung";
     await runTransaction(db, async t => {
-      // WICHTIG: Nur das VIRTUELLE Guthaben wird verändert (Sonderpreis/Strafe berührt echtes Cash nicht!)
       t.update(doc(db, "users", id), { balance: increment(v) });
       t.set(doc(collection(db, "txns")), { userId: id, userName: uname(u), delta: v, note, raceNumber: rn, createdAt: serverTimestamp() });
     });
