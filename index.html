@@ -36,6 +36,11 @@ button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
 .badge{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;background:#651fff}
 .badge.w{background:var(--green)}.badge.l{background:#d50000}
 .av{border-radius:50%;object-fit:cover;background:#232931;display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex:none;vertical-align:middle}
+.ach-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.ach{background:#111418;border:1px solid var(--bd);border-top:3px solid;border-radius:8px;padding:10px;font-size:.85rem;min-width:0;overflow-wrap:anywhere}
+.ach.g{border-top-color:var(--green)}.ach.r{border-top-color:#d50000}
+.ach .t{font-size:.68rem;text-transform:uppercase;font-weight:700;color:var(--mut)}
+.ach .v{font-size:1.15rem;font-weight:800;margin:4px 0}
 .banner{background:linear-gradient(90deg,#e2001a,#8a0010);padding:12px;border-radius:8px;font-weight:800;text-align:center;text-transform:uppercase;margin-bottom:12px}
 .lb{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd);font-size:.95rem}
 .lb:last-child{border:0}.lb .n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -83,6 +88,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <!-- WETTEN -->
     <div id="page-main">
       <div class="card"><h2>🏆 Rangliste</h2><div id="leaderboard"></div></div>
+      <div class="card"><h2>🏅 Erfolge</h2><div id="achievements"></div></div>
 
       <div id="sp-bonus" class="card sp bonus hidden"><h2>🍻 Bier-Ex Poker</h2>
         <p>Nennt eure Zielzeit – der Mutigste tritt gegen die Stoppuhr an.</p><hr>
@@ -248,6 +254,7 @@ function renderUsers() {
   }
   if (mine) { $("me-name").textContent = uname(mine); $("me-av").innerHTML = av(mine, 24); }
   preview();
+  renderAch();
 }
 
 function renderRace() {
@@ -294,6 +301,32 @@ function renderBets() {
   $("history-bets").innerHTML = keys.map(k => `<details data-race="${esc(k)}" ${openRaces.has(k) ? "open" : ""}>
     <summary>🏁 Rennen ${esc(k)} (${groups[k].length})</summary>${groups[k].map(betCard).join("")}</details>`).join("")
     || `<p class="mut" style="text-align:center">Bisher keine Wetten.</p>`;
+  renderAch();
+}
+
+function renderAch() {
+  const pick = (arr, f, max) => arr.reduce((m, b) => !m || (max ? f(b) > f(m) : f(b) < f(m)) ? b : m, null);
+  const prof = b => r2(b.possibleWin - b.amount);
+  const bname = b => esc(b.userName || (b.userEmail || "").split("@")[0]);
+  const betCell = (cls, title, b, val) => `<div class="ach ${cls}"><div class="t">${title}</div>` + (b
+    ? `<div class="v">${val(b)}</div><div>${av(users.find(u => u.id === b.userId), 20)} <b>${bname(b)}</b></div><div class="mut">${esc(b.horse)} · Rennen ${esc(b.raceNumber)}</div>`
+    : `<div class="v mut">–</div>`) + `</div>`;
+  const cnt = users.map(u => ({ u, n: bets.filter(b => b.userId === u.id).length }));
+  const tipCell = (cls, title, max) => {
+    if (!bets.length || !cnt.length) return `<div class="ach ${cls}"><div class="t">${title}</div><div class="v mut">–</div></div>`;
+    const t = Math[max ? "max" : "min"](...cnt.map(c => c.n)), w = cnt.filter(c => c.n === t);
+    return `<div class="ach ${cls}"><div class="t">${title}</div><div class="v">${t} Tipp${t === 1 ? "" : "s"}</div>`
+      + w.slice(0, 3).map(c => `<div>${av(c.u, 20)} <b>${esc(uname(c.u))}</b></div>`).join("")
+      + (w.length > 3 ? `<div class="mut">+${w.length - 3} weitere</div>` : "") + `</div>`;
+  };
+  const won = bets.filter(b => b.status === "gewonnen"), lost = bets.filter(b => b.status === "verloren");
+  const odds = b => Number(b.odds), pair = (a, b) => `<div class="ach-pair">${a}${b}</div>`;
+  $("achievements").innerHTML =
+    pair(betCell("g", "💰 Größter Gewinn", pick(won, prof, true), b => "+" + eur(prof(b))),
+         betCell("r", "💸 Größter Verlust", pick(lost, b => b.amount, true), b => "−" + eur(b.amount))) +
+    pair(betCell("g", "🚀 Höchste Quote", pick(bets, odds, true), b => odds(b).toFixed(2)),
+         betCell("r", "🐢 Niedrigste Quote", pick(bets, odds, false), b => odds(b).toFixed(2))) +
+    pair(tipCell("g", "🎯 Meiste Tipps", true), tipCell("r", "🫥 Wenigste Tipps", false));
 }
 
 function preview() {
