@@ -123,7 +123,12 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
         <p>Wir füllen reihum ein Bierglas auf.</p><hr>
         <p style="color:#ff1744"><b>Wer es zum Überlaufen bringt, verliert sofort 2,00 € Guthaben!</b></p></div>
       <div id="sp-buyin" class="card sp buyin hidden"><h2>💸 Not-Einkauf (Bier-Flatrate)</h2>
-        <p>Guthaben aufgebraucht? Trinke in 3 Minuten so viele Biere wie möglich.</p><hr>
+        <p>Guthaben aufgebraucht? Trinke in <b>1 Minute</b> so viele Biere wie möglich.</p>
+        <div style="text-align:center;margin:12px 0">
+          <div id="timer" style="font-size:2.8rem;font-weight:900;font-variant-numeric:tabular-nums">1:00</div>
+          <button class="b" id="timer-btn" data-act="timer" style="background:#ffc400;color:#000;margin-top:8px">⏱️ Challenge starten</button>
+          <p class="mut" style="font-size:.75rem;margin:6px 0 0">Nur der Challenger startet den Timer auf seinem Handy.</p>
+        </div><hr>
         <p><b style="color:#ffc400">Belohnung:</b> 0,80 € pro Bier (max. 4,00 €).</p></div>
       <div id="sp-team" class="card sp team hidden"><h2>🤝 Team-Modus</h2>
         <p>Schließt euch zusammen und gebt eine Team-Wette ab.</p><hr>
@@ -289,6 +294,37 @@ function calcWin(b, usedEx) {
   if (exX > 0) { const g = Math.min(exX, Math.max(0, r2(EX_CAP - usedEx))); capped += exX - g; exX = g; }
   if (teamX > TEAM_CAP) { capped += teamX - TEAM_CAP; teamX = TEAM_CAP; }
   return { exX, payout: r2(base + exX + teamX), bonus: r2(exX + teamX), capped: r2(capped) };
+}
+
+// ---------- Not-Einkauf-Timer (1 Minute, läuft lokal auf dem Handy des Challengers) ----------
+const TIMER_SEC = 60;
+let tmr = null, actx = null, wakeLock = null;
+const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+function beep() {
+  if (!actx) return;
+  [0, .3, .6].forEach(t => {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = 880; g.gain.value = .25; o.connect(g); g.connect(actx.destination);
+    o.start(actx.currentTime + t); o.stop(actx.currentTime + t + .2);
+  });
+}
+function timerEnd(label) {
+  clearInterval(tmr); tmr = null; wakeLock?.release().catch(() => {}); wakeLock = null;
+  $("timer-btn").textContent = "⏱️ Nochmal starten";
+  $("timer").style.color = ""; $("timer").textContent = label;
+}
+async function timerToggle() {
+  if (tmr) { timerEnd(fmt(TIMER_SEC)); $("timer-btn").textContent = "⏱️ Challenge starten"; return; }
+  try { actx ||= new (window.AudioContext || window.webkitAudioContext)(); await actx.resume(); } catch {} // Klick = Erlaubnis für den Ton
+  try { wakeLock = await navigator.wakeLock?.request("screen"); } catch {} // Display bleibt an
+  const end = Date.now() + TIMER_SEC * 1000;
+  $("timer-btn").textContent = "⏹️ Abbrechen";
+  const tick = () => {
+    const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+    $("timer").textContent = fmt(left); $("timer").style.color = left <= 10 ? "#ff5252" : "";
+    if (left <= 0) { timerEnd("Zeit! 🍺"); beep(); navigator.vibrate?.([300, 150, 300, 150, 600]); toast("⏱️ Zeit abgelaufen – Biere zählen!"); }
+  };
+  tick(); tmr = setInterval(tick, 250);
 }
 
 const tx = fn => runTransaction(db, fn).catch(e => {
@@ -568,6 +604,7 @@ const A = {
   nav: d => { tab(d.tab); menu(false); window.scrollTo(0, 0); },
   menu: () => menu(),
   menuClose: () => menu(false),
+  timer: () => timerToggle(),
   regLock: () => setDoc(doc(db, "settings", "registration"), { locked: true }),
   regOpen: () => setDoc(doc(db, "settings", "registration"), { locked: false }),
   async drink(d) {
