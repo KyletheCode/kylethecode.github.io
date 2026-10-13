@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KC Kegelclub Race</title>
+<style>
+:root{--bg:#0f1215;--card:#181c21;--bd:#282e36;--red:#e2001a;--green:#00c853;--orange:#ff9100;--blue:#00b0ff;--mut:#8e99a8}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body{background:var(--bg);color:#fff;padding-bottom:40px}
+.hidden{display:none!important}
+.mut{color:var(--mut)}.ok{color:var(--green)}.warn{color:var(--orange)}
+header{background:#121519;border-bottom:2px solid var(--red);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.brand{font-weight:900;font-style:italic}.brand span{color:var(--red)}
+.pill{background:#232931;padding:6px 12px;border-radius:20px;font-size:.85rem;display:flex;gap:10px;align-items:center}
+.pill button{background:none;border:none;color:var(--mut);font-weight:700;font-size:.8rem;cursor:pointer}
+.wrap{max-width:900px;margin:15px auto;padding:0 12px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;background:var(--card);padding:4px;border-radius:8px;border:1px solid var(--bd)}
+.tab{flex:1;padding:10px 4px;text-align:center;border-radius:6px;cursor:pointer;font-weight:700;font-size:.8rem;text-transform:uppercase;color:var(--mut)}
+.tab.on{background:var(--red);color:#fff}
+.card{background:var(--card);border:1px solid var(--bd);padding:16px;border-radius:10px;margin-bottom:16px}
+.card h2{font-size:1rem;text-transform:uppercase;margin-bottom:12px}
+.card h3{font-size:.95rem;margin:16px 0 8px}
+.card p{font-size:.9rem;line-height:1.4;color:#cfd8dc;margin-bottom:8px}
+hr{border:0;border-top:1px solid var(--bd);margin:10px 0}
+label{font-size:.8rem;color:var(--mut);text-transform:uppercase;font-weight:700;margin-top:8px;display:block}
+input,select{padding:12px;margin:4px 0 12px;width:100%;font-size:1rem;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:#fff;outline:none}
+input:focus,select:focus{border-color:var(--red)}
+button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
+.b{padding:12px;width:100%;background:var(--red);text-transform:uppercase}
+.s{padding:8px 10px;font-size:.75rem;background:#37474f}
+.s.w{background:#00c853}.s.l{background:#d50000}.s.u{background:#00b0ff}
+.row{display:flex;gap:6px;flex-wrap:wrap}.row>*{flex:1}
+.sp{border-left:5px solid;background:linear-gradient(135deg,#181c21,#1c2430)}
+.sp.bonus{border-color:#00b0ff}.sp.penalty{border-color:#ff1744}.sp.buyin{border-color:#ffc400}.sp.team{border-color:#651fff}
+.badge{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;background:#651fff}
+.badge.w{background:var(--green)}.badge.l{background:#d50000}
+.banner{background:linear-gradient(90deg,#e2001a,#8a0010);padding:12px;border-radius:8px;font-weight:800;text-align:center;text-transform:uppercase;margin-bottom:12px}
+.lb{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd);font-size:.95rem}
+.lb:last-child{border:0}.lb .n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bet{background:#111418;border:1px solid var(--bd);border-left:4px solid var(--orange);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.9rem}
+.bet.gewonnen{border-left-color:var(--green)}.bet.verloren{border-left-color:#555}
+.bet .r{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.bet .a{margin-top:8px}
+details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red);padding:8px 0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#232931;border:1px solid var(--bd);padding:12px 18px;border-radius:8px;z-index:999;max-width:90%;text-align:center;font-size:.9rem;opacity:0;pointer-events:none;transition:.25s}
+#toast.show{opacity:1}#toast.err{border-color:#d50000;color:#ff8a80}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="auth" class="wrap" style="max-width:400px;margin-top:60px">
+  <div class="card" style="text-align:center;border-top:4px solid var(--red)">
+    <h1 class="brand" style="font-size:1.7rem;margin-bottom:20px">KC KEGELCLUB <span>RACE</span></h1>
+    <h2>Anmelden / Konto erstellen</h2>
+    <input id="name" placeholder="Spitzname (nur bei Registrierung)" maxlength="20" autocomplete="nickname">
+    <input type="email" id="email" placeholder="E-Mail-Adresse" autocomplete="email">
+    <input type="password" id="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password">
+    <button class="b" data-act="login">Einloggen</button>
+    <button class="b" data-act="register" style="background:#282e36;margin-top:8px">Registrieren (10 € Start)</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header>
+    <div class="brand">KC KEGELCLUB <span>RACE</span></div>
+    <div class="pill"><b id="me-name"></b><button data-act="logout">LOGOUT</button></div>
+  </header>
+  <div class="wrap">
+    <div class="tabs">
+      <div class="tab on" data-act="tab" data-tab="main">🏇 Wetten</div>
+      <div class="tab" data-act="tab" data-tab="history">📜 Historie</div>
+      <div class="tab hidden" id="tab-admin" data-act="tab" data-tab="admin">👑 Admin</div>
+    </div>
+
+    <!-- WETTEN -->
+    <div id="page-main">
+      <div class="card"><h2>🏆 Rangliste</h2><div id="leaderboard"></div></div>
+
+      <div id="sp-bonus" class="card sp bonus hidden"><h2>🍻 Bier-Ex Poker</h2>
+        <p>Nennt eure Zielzeit – der Mutigste tritt gegen die Stoppuhr an.</p><hr>
+        <p><b class="ok">Geschafft:</b> Quote deiner nächsten Wette <b>×2,0</b>.</p>
+        <p><b style="color:#ff1744">Nicht geschafft:</b> Quote deiner nächsten Wette <b>×0,5</b>.</p></div>
+      <div id="sp-penalty" class="card sp penalty hidden"><h2>⚠️ Risiko-Runde: Das überlaufende Glas</h2>
+        <p>Wir füllen reihum ein Bierglas auf.</p><hr>
+        <p style="color:#ff1744"><b>Wer es zum Überlaufen bringt, verliert sofort 2,00 € Guthaben!</b></p></div>
+      <div id="sp-buyin" class="card sp buyin hidden"><h2>💸 Not-Einkauf (Bier-Flatrate)</h2>
+        <p>Guthaben aufgebraucht? Trinke in 3 Minuten so viele Biere wie möglich.</p><hr>
+        <p><b style="color:#ffc400">Belohnung:</b> 1,00 € pro Bier (max. 4,00 €).</p></div>
+      <div id="sp-team" class="card sp team hidden"><h2>🤝 Team-Modus</h2>
+        <p>Schließt euch zusammen und gebt eine Team-Wette ab.</p><hr>
+        <p style="color:#b388ff">🔥 Im Gewinnfall gibt es den <b>1,5-fachen Gewinn</b>!</p></div>
+
+      <div class="card"><h2>🏇 Wette platzieren</h2>
+        <div id="race-msg"></div>
+        <div id="bet-form" class="hidden">
+          <div class="banner">Rennen <span id="race-label">-</span></div>
+          <div id="mult-info" class="hidden" style="margin-bottom:12px;padding:10px;border-radius:6px;font-weight:700;text-align:center"></div>
+          <label for="bet-horse">Pferd / Tipp</label>
+          <input id="bet-horse" placeholder="z. B. Pferd Nr. 3" maxlength="40">
+          <label for="bet-amount">Einsatz (€)</label>
+          <input type="number" inputmode="decimal" step="0.01" min="0.01" id="bet-amount" placeholder="1,00">
+          <label for="bet-odds">Quote</label>
+          <input type="number" inputmode="decimal" step="0.1" min="1.01" id="bet-odds" placeholder="2.5">
+          <div id="team-box" class="hidden" style="margin:6px 0 12px;background:#231d38;padding:10px;border-radius:6px;border:1px solid #3d2f66">
+            <label style="cursor:pointer;color:#fff;margin:0;display:flex;align-items:center;gap:10px">
+              <input type="checkbox" id="bet-team" style="width:18px;height:18px;margin:0"> 🤝 Team-Wette (×1,5)</label>
+          </div>
+          <p id="preview" class="mut" style="text-align:center"></p>
+          <button class="b" data-act="place">Wette verbindlich abgeben</button>
+        </div>
+      </div>
+
+      <div class="card"><h2>📋 Wetten: <span id="round-title">-</span></h2><div id="current-bets"></div></div>
+    </div>
+
+    <!-- HISTORIE -->
+    <div id="page-history" class="hidden"><div class="card"><h2>📜 Alle bisherigen Wetten</h2><div id="history-bets"></div></div></div>
+
+    <!-- ADMIN -->
+    <div id="page-admin" class="hidden"><div class="card" style="border-top:4px solid var(--orange)">
+      <h2>👑 Admin</h2>
+      <p>Status: <b id="admin-race-status">-</b></p>
+      <label for="admin-race">Rennnummer</label>
+      <input id="admin-race" placeholder="z. B. 1" maxlength="10">
+      <div class="row"><button class="b" style="background:var(--green)" data-act="openRace">Öffnen</button>
+        <button class="b" style="background:#d50000" data-act="closeRace">Schließen</button></div>
+
+      <h3>Spieler wählen</h3>
+      <select id="adm-user"></select>
+      <label>🍻 Bier-Ex Ergebnis</label>
+      <div class="row"><button class="s w" data-act="ex" data-m="2">🏆 2x</button><button class="s l" data-act="ex" data-m="0.5">❌ 0,5x</button><button class="s" data-act="ex" data-m="1">🔄 Reset</button></div>
+      <label>Guthaben ändern um (€, auch negativ)</label>
+      <input type="number" inputmode="decimal" step="0.01" id="adm-delta" placeholder="z. B. -2">
+      <div class="row"><button class="s u" data-act="adjust">Buchen</button><button class="s l" data-act="adjust" data-v="-2">−2 € Strafe</button><button class="s w" data-act="adjust" data-v="1">+1 € Bier</button></div>
+
+      <h3>Party-Modi</h3><div id="mode-btns"></div>
+    </div></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8",
+  authDomain: "kc-kegelclub.firebaseapp.com",
+  projectId: "kc-kegelclub",
+  storageBucket: "kc-kegelclub.firebasestorage.app",
+  messagingSenderId: "269537570601",
+  appId: "1:269537570601:web:3670cb28c7e183198c5138"
+};
+// Nur für die Anzeige. Die echte Absicherung passiert in firestore.rules!
+const ADMIN_EMAIL = "m.tobias98@gmx.de";
+const MODES = { bonus: "Bier-Ex Info", penalty: "Risiko-Runde (−2 €)", buyin: "Not-Einkauf", team: "Team-Modus (×1,5)" };
+
+const auth = getAuth(initializeApp(firebaseConfig));
+const db = getFirestore();
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const r2 = n => Math.round(n * 100) / 100;
+const eur = n => r2(n).toFixed(2).replace(".", ",") + " €";
+const uname = u => u.name || (u.email || "").split("@")[0];
+
+let me = null, isAdmin = false, users = [], bets = [], race = { isOpen: false, raceNumber: null };
+let modes = {}, unsubs = [];
+const openRaces = new Set();
+
+let tt;
+function toast(msg, err) {
+  const t = $("toast"); t.textContent = msg; t.className = "show" + (err ? " err" : "");
+  clearTimeout(tt); tt = setTimeout(() => t.className = "", 3000);
+}
+
+/* ---------- Auth ---------- */
+onAuthStateChanged(auth, user => {
+  unsubs.forEach(u => u()); unsubs = [];
+  me = user; isAdmin = !!user && user.email === ADMIN_EMAIL;
+  $("auth").classList.toggle("hidden", !!user);
+  $("app").classList.toggle("hidden", !user);
+  $("tab-admin").classList.toggle("hidden", !isAdmin);
+  if (!user) return;
+  tab("main");
+  const L = (ref, fn) => unsubs.push(onSnapshot(ref, fn, e => toast(e.message, true)));
+  L(collection(db, "users"), s => { users = s.docs.map(d => ({ id: d.id, ...d.data() })); renderUsers(); });
+  L(collection(db, "bets"), s => { bets = s.docs.map(d => ({ id: d.id, ...d.data() })); renderBets(); });
+  L(doc(db, "settings", "race"), s => { race = s.exists() ? s.data() : { isOpen: false }; renderRace(); renderBets(); });
+  Object.keys(MODES).forEach(k => L(doc(db, "settings", k), s => { modes[k] = s.exists() && !!s.data().isOpen; renderModes(); }));
+});
+
+/* ---------- Rendering ---------- */
+function tab(t) {
+  document.querySelectorAll(".tab").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
+  ["main", "history", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
+}
+
+function renderUsers() {
+  const sorted = [...users].sort((a, b) => b.balance - a.balance);
+  $("leaderboard").innerHTML = sorted.map((u, i) => {
+    const m = u.oddsMultiplier || 1;
+    const bd = m === 2 ? `<span class="badge w">🍻 2x QUOTE</span>` : m === 0.5 ? `<span class="badge l">⚠️ 0,5x QUOTE</span>` : "";
+    return `<div class="lb"><span class="n">${i + 1}. <b>${esc(uname(u))}</b> ${bd}</span><b class="ok">${eur(u.balance)}</b></div>`;
+  }).join("") || `<p class="mut">Noch keine Spieler.</p>`;
+  if (isAdmin) {
+    const sel = $("adm-user"), cur = sel.value;
+    sel.innerHTML = `<option value="">-- Spieler --</option>` + sorted.map(u => `<option value="${esc(u.id)}">${esc(uname(u))} (${eur(u.balance)}, ${u.oddsMultiplier || 1}x)</option>`).join("");
+    sel.value = cur;
+  }
+  const mine = users.find(u => u.id === me?.uid), m = mine?.oddsMultiplier || 1, box = $("mult-info");
+  box.classList.toggle("hidden", m === 1);
+  if (m !== 1) {
+    const win = m === 2;
+    box.style.cssText = `margin-bottom:12px;padding:10px;border-radius:6px;font-weight:700;text-align:center;background:${win ? "rgba(0,200,83,.2)" : "rgba(213,0,0,.2)"};border:1px solid ${win ? "#00c853" : "#d50000"};color:${win ? "#00c853" : "#ff5252"}`;
+    box.textContent = win ? "🔥 2x BIER-EX BONUS aktiv (nächste Quote verdoppelt)" : "⚠️ 0,5x BIER-EX MALUS aktiv (nächste Quote halbiert)";
+  }
+  if (mine) $("me-name").textContent = uname(mine);
+  preview();
+}
+
+function renderRace() {
+  const open = !!race.isOpen, n = esc(race.raceNumber);
+  $("bet-form").classList.toggle("hidden", !open);
+  $("race-msg").innerHTML = open
+    ? `<p class="ok" style="font-weight:700">🟢 Rennen "${n}" ist jetzt offen!</p>`
+    : `<p style="color:var(--red);font-weight:700">🔴 Aktuell ist kein Rennen geöffnet.</p>`;
+  $("race-label").textContent = race.raceNumber ?? "-";
+  $("round-title").textContent = open ? "Rennen " + race.raceNumber : "Kein Rennen aktiv";
+  $("admin-race-status").textContent = open ? `Rennen "${race.raceNumber}" ist OFFEN` : "GESCHLOSSEN";
+}
+
+function renderModes() {
+  Object.keys(MODES).forEach(k => $("sp-" + k).classList.toggle("hidden", !modes[k]));
+  $("team-box").classList.toggle("hidden", !modes.team);
+  if (!modes.team) $("bet-team").checked = false;
+  $("mode-btns").innerHTML = Object.entries(MODES).map(([k, l]) =>
+    `<label>${esc(l)}: <b>${modes[k] ? "AN" : "AUS"}</b></label><div class="row" style="margin-bottom:8px">
+     <button class="s w" data-act="mode" data-k="${k}" data-v="1">Aktivieren</button>
+     <button class="s l" data-act="mode" data-k="${k}" data-v="0">Deaktivieren</button></div>`).join("");
+  preview();
+}
+
+function betCard(b) {
+  const st = b.status === "gewonnen" ? `<b class="ok">✓ +${eur(b.possibleWin)}</b>`
+    : b.status === "verloren" ? `<span class="mut">Verloren</span>` : `<span class="warn">Offen (${eur(b.possibleWin)})</span>`;
+  let badges = "";
+  if (b.isTeam) badges += ` <span class="badge">🤝 TEAM ×1,5</span>`;
+  if (b.exMultiplier === 2) badges += ` <span class="badge w">🍻 EX ×2</span>`;
+  if (b.exMultiplier === 0.5) badges += ` <span class="badge l">⚠️ EX ×0,5</span>`;
+  let adm = "";
+  if (isAdmin) adm = `<div class="a row">${b.status === "offen" ? `<button class="s w" data-act="win" data-id="${esc(b.id)}">✓ Sieg</button><button class="s l" data-act="lose" data-id="${esc(b.id)}">✗ Niederlage</button>` : ""}<button class="s" data-act="del" data-id="${esc(b.id)}">🗑️ Stornieren</button></div>`;
+  return `<div class="bet ${esc(b.status)}"><div class="r"><b>${esc(b.horse)}</b>${st}</div>
+    <div class="r mut"><span>${esc(b.userName || (b.userEmail || "").split("@")[0])}${badges}</span><span>${eur(b.amount)} × ${Number(b.finalOdds).toFixed(2)}</span></div>${adm}</div>`;
+}
+
+function renderBets() {
+  const cur = race.isOpen ? bets.filter(b => String(b.raceNumber) === String(race.raceNumber)) : [];
+  $("current-bets").innerHTML = cur.map(betCard).join("") || `<p class="mut" style="text-align:center">Keine Wetten in dieser Runde.</p>`;
+  const groups = {};
+  bets.forEach(b => (groups[b.raceNumber ?? "Unbekannt"] ||= []).push(b));
+  const keys = Object.keys(groups).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  $("history-bets").innerHTML = keys.map(k => `<details data-race="${esc(k)}" ${openRaces.has(k) ? "open" : ""}>
+    <summary>🏁 Rennen ${esc(k)} (${groups[k].length})</summary>${groups[k].map(betCard).join("")}</details>`).join("")
+    || `<p class="mut" style="text-align:center">Bisher keine Wetten.</p>`;
+}
+
+function preview() {
+  const a = parseFloat($("bet-amount").value), o = parseFloat($("bet-odds").value);
+  const m = users.find(u => u.id === me?.uid)?.oddsMultiplier || 1;
+  $("preview").textContent = a > 0 && o > 0 ? `Möglicher Gewinn: ${eur(a * o * m * ($("bet-team").checked ? 1.5 : 1))}` : "";
+}
+document.addEventListener("input", e => { if (e.target.closest("#bet-form")) preview(); });
+document.addEventListener("toggle", e => {
+  const k = e.target.dataset?.race; if (k == null) return;
+  e.target.open ? openRaces.add(k) : openRaces.delete(k);
+}, true);
+
+/* ---------- Aktionen (Transaktionen = kein Doppelklick-/Abbruch-Problem) ---------- */
+const A = {
+  tab: d => tab(d.tab),
+  login: () => signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value),
+  logout: () => signOut(auth),
+  async register() {
+    const name = $("name").value.trim();
+    if (name.length < 2) return toast("Bitte einen Spitznamen (mind. 2 Zeichen) eingeben.", true);
+    const email = $("email").value.trim();
+    const res = await createUserWithEmailAndPassword(auth, email, $("password").value);
+    await setDoc(doc(db, "users", res.user.uid), { email, name, balance: 10, oddsMultiplier: 1 });
+    toast("Registriert mit 10 € Startguthaben!");
+  },
+
+  async place() {
+    const horse = $("bet-horse").value.trim(), amount = r2(parseFloat($("bet-amount").value));
+    const odds = parseFloat($("bet-odds").value), team = modes.team && $("bet-team").checked;
+    if (!horse || !(amount > 0) || !(odds >= 1.01)) return toast("Bitte Tipp, Einsatz und Quote (≥ 1,01) korrekt ausfüllen.", true);
+    if (!confirm(`${eur(amount)} auf "${horse}" setzen?`)) return;
+    const uref = doc(db, "users", me.uid), bref = doc(collection(db, "bets"));
+    const num = await runTransaction(db, async t => {
+      const rs = (await t.get(doc(db, "settings", "race"))).data();
+      if (!rs?.isOpen) throw new Error("Es ist kein Rennen offen!");
+      const u = (await t.get(uref)).data();
+      if (u.balance < amount) throw new Error("Nicht genug Guthaben!");
+      const ex = u.oddsMultiplier || 1, finalOdds = odds * ex;
+      t.update(uref, { balance: r2(u.balance - amount), oddsMultiplier: 1 });
+      t.set(bref, { raceNumber: String(rs.raceNumber), userId: me.uid, userName: uname(u), horse, amount, odds,
+        finalOdds, exMultiplier: ex, isTeam: !!team, possibleWin: r2(amount * finalOdds * (team ? 1.5 : 1)),
+        status: "offen", createdAt: serverTimestamp() });
+      return rs.raceNumber;
+    });
+    ["bet-horse", "bet-amount", "bet-odds"].forEach(i => $(i).value = "");
+    $("bet-team").checked = false; preview();
+    toast(`Wette für Rennen ${num} abgegeben!`);
+  },
+
+  async win(d) {
+    if (!confirm("Gewinn auszahlen?")) return;
+    const bref = doc(db, "bets", d.id);
+    await runTransaction(db, async t => {
+      const b = (await t.get(bref)).data();
+      if (!b || b.status !== "offen") throw new Error("Wette ist nicht mehr offen!");
+      t.update(bref, { status: "gewonnen" });
+      t.update(doc(db, "users", b.userId), { balance: increment(b.possibleWin) });
+    });
+    toast("Ausgezahlt!");
+  },
+  async lose(d) {
+    if (!confirm("Als verloren markieren?")) return;
+    const bref = doc(db, "bets", d.id);
+    await runTransaction(db, async t => {
+      const b = (await t.get(bref)).data();
+      if (!b || b.status !== "offen") throw new Error("Wette ist nicht mehr offen!");
+      t.update(bref, { status: "verloren" });
+    });
+  },
+  async del(d) {
+    if (!confirm("Wette stornieren? Der Einsatz wird erstattet (ein ausgezahlter Gewinn wird abgezogen).")) return;
+    const bref = doc(db, "bets", d.id);
+    await runTransaction(db, async t => {
+      const b = (await t.get(bref)).data();
+      if (!b) throw new Error("Wette existiert nicht mehr!");
+      const refund = b.status === "gewonnen" ? b.amount - b.possibleWin : b.amount;
+      t.update(doc(db, "users", b.userId), { balance: increment(refund) });
+      t.delete(bref);
+    });
+    toast("Storniert!");
+  },
+
+  async openRace() {
+    const n = $("admin-race").value.trim();
+    if (!n) return toast("Bitte Rennnummer eingeben.", true);
+    await setDoc(doc(db, "settings", "race"), { isOpen: true, raceNumber: n });
+  },
+  closeRace: () => setDoc(doc(db, "settings", "race"), { isOpen: false, raceNumber: null }),
+  mode: d => setDoc(doc(db, "settings", d.k), { isOpen: d.v === "1" }),
+  async ex(d) {
+    const id = $("adm-user").value; if (!id) return toast("Bitte Spieler wählen.", true);
+    await updateDoc(doc(db, "users", id), { oddsMultiplier: parseFloat(d.m) });
+    toast("Quote gesetzt (gilt für die nächste Wette).");
+  },
+  async adjust(d) {
+    const id = $("adm-user").value; if (!id) return toast("Bitte Spieler wählen.", true);
+    const v = r2(parseFloat(d.v ?? $("adm-delta").value));
+    if (!v) return toast("Bitte Betrag eingeben.", true);
+    await updateDoc(doc(db, "users", id), { balance: increment(v) });
+    $("adm-delta").value = ""; toast(`${v > 0 ? "+" : ""}${eur(v)} gebucht.`);
+  }
+};
+
+document.addEventListener("click", async e => {
+  const el = e.target.closest("[data-act]"); if (!el) return;
+  el.disabled = true;
+  try { await A[el.dataset.act](el.dataset); }
+  catch (err) { toast(err.message.replace("Firebase: ", ""), true); }
+  finally { el.disabled = false; }
+});
+</script>
+</body>
+</html>
