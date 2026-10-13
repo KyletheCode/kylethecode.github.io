@@ -91,6 +91,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <a class="nav" data-act="nav" data-tab="history">📜 Wett-History</a>
     <a class="nav" data-act="nav" data-tab="stats">📊 Statistik</a>
     <a class="nav" data-act="nav" data-tab="analytics">📈 Analytics</a>
+    <a class="nav" data-act="nav" data-tab="doping">🍺 Doping</a>
     <a class="nav hidden" id="nav-admin" data-act="nav" data-tab="admin">👑 Admin</a>
     <div style="flex:1"></div>
     <a class="nav" data-act="logout">🚪 Logout</a>
@@ -150,6 +151,21 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
       <div id="analytics"></div>
     </div>
 
+    <!-- DOPING -->
+    <div id="page-doping" class="hidden">
+      <div class="card" style="border-top:4px solid #ffb300"><h2>🍺 Doping – Bier-Tracker</h2>
+        <p>Was hast du gerade getrunken? Ein Tipp = ein Bier.</p>
+        <div class="row">
+          <button class="b" style="background:#ffb300;color:#000;padding:16px 4px" data-act="drink" data-ml="200">🍺 0,2 l</button>
+          <button class="b" style="background:#ffb300;color:#000;padding:16px 4px" data-act="drink" data-ml="250">🍺 0,25 l</button>
+          <button class="b" style="background:#ffb300;color:#000;padding:16px 4px" data-act="drink" data-ml="330">🍺 0,33 l</button>
+        </div>
+        <p id="my-drinks" style="text-align:center;margin-top:12px"></p>
+        <button class="s" style="width:100%;margin-top:4px;padding:10px" data-act="undoDrink">↩️ Letztes Bier rückgängig</button>
+      </div>
+      <div class="card"><h2>📊 Dashboard</h2><div id="drink-total"></div><div id="drink-board"></div></div>
+    </div>
+
     <!-- ADMIN -->
     <div id="page-admin" class="hidden"><div class="card" style="border-top:4px solid var(--orange)">
       <h2>👑 Admin</h2>
@@ -176,7 +192,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8", // wird beim Deploy per GitHub Secret ersetzt
@@ -222,7 +238,7 @@ $("avatar").addEventListener("change", async e => {
   catch (err) { toast(err.message, true); e.target.value = ""; p.classList.add("hidden"); }
 });
 
-let me = null, isAdmin = false, users = [], bets = [], txns = [], race = { isOpen: false, raceNumber: null };
+let me = null, isAdmin = false, users = [], bets = [], txns = [], drinks = [], race = { isOpen: false, raceNumber: null };
 let modes = {}, unsubs = [];
 const openRaces = new Set();
 
@@ -244,6 +260,7 @@ onAuthStateChanged(auth, user => {
   const L = (ref, fn) => unsubs.push(onSnapshot(ref, fn, e => toast(e.message, true)));
   L(collection(db, "users"), s => { users = s.docs.map(d => ({ id: d.id, ...d.data() })); renderUsers(); });
   L(collection(db, "bets"), s => { bets = s.docs.map(d => ({ id: d.id, ...d.data() })); renderBets(); });
+  L(collection(db, "drinks"), s => { drinks = s.docs.map(d => ({ id: d.id, ...d.data() })); renderDoping(); renderAch(); });
   L(collection(db, "txns"), s => { txns = s.docs.map(d => ({ id: d.id, ...d.data() })); renderTxns(); renderAnalytics(); });
   L(doc(db, "settings", "race"), s => { race = s.exists() ? s.data() : { isOpen: false }; renderRace(); renderBets(); });
   Object.keys(MODES).forEach(k => L(doc(db, "settings", k), s => { modes[k] = s.exists() && !!s.data().isOpen; renderModes(); }));
@@ -252,7 +269,7 @@ onAuthStateChanged(auth, user => {
 /* ---------- Rendering ---------- */
 function tab(t) {
   document.querySelectorAll(".nav[data-tab]").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
-  ["main", "history", "stats", "analytics", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
+  ["main", "history", "stats", "analytics", "doping", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
 }
 function menu(open) {
   const o = open ?? !$("drawer").classList.contains("open");
@@ -283,6 +300,7 @@ function renderUsers() {
   preview();
   renderAch();
   renderAnalytics();
+  renderDoping();
 }
 
 function renderRace() {
@@ -348,6 +366,14 @@ function renderAch() {
       + w.slice(0, 3).map(c => `<div>${av(c.u, 20)} <b>${esc(uname(c.u))}</b></div>`).join("")
       + (w.length > 3 ? `<div class="mut">+${w.length - 3} weitere</div>` : "") + `</div>`;
   };
+  const dst = drinkStats();
+  const drinkCell = (cls, title, max) => {
+    if (!drinks.length || !dst.length) return `<div class="ach ${cls}"><div class="t">${title}</div><div class="v mut">–</div></div>`;
+    const t = Math[max ? "max" : "min"](...dst.map(x => x.ml)), w = dst.filter(x => x.ml === t);
+    return `<div class="ach ${cls}"><div class="t">${title}</div><div class="v">${lit(t)}</div>`
+      + w.slice(0, 3).map(x => `<div>${av(x.u, 20)} <b>${esc(uname(x.u))}</b></div>`).join("")
+      + (w.length > 3 ? `<div class="mut">+${w.length - 3} weitere</div>` : "") + `</div>`;
+  };
   const won = bets.filter(b => b.status === "gewonnen"), lost = bets.filter(b => b.status === "verloren");
   const odds = b => Number(b.odds), pair = (a, b) => `<div class="ach-pair">${a}${b}</div>`;
   $("achievements").innerHTML =
@@ -355,7 +381,31 @@ function renderAch() {
          betCell("r", "💸 Größter Verlust", pick(lost, b => b.amount, true), b => "−" + eur(b.amount))) +
     pair(betCell("g", "🚀 Höchste Quote", pick(bets, odds, true), b => odds(b).toFixed(2)),
          betCell("r", "🐢 Niedrigste Quote", pick(bets, odds, false), b => odds(b).toFixed(2))) +
-    pair(tipCell("g", "🎯 Meiste Tipps", true), tipCell("r", "🫥 Wenigste Tipps", false));
+    pair(tipCell("g", "🎯 Meiste Tipps", true), tipCell("r", "🫥 Wenigste Tipps", false)) +
+    pair(drinkCell("g", "🍻 Trinkspatz", true), drinkCell("r", "🧊 Spaßbremse", false));
+}
+
+const lit = ml => String(ml / 1000).replace(".", ",") + " l";
+const SIZES = [200, 250, 330];
+function drinkStats() {
+  return users.map(u => {
+    const mine = drinks.filter(d => d.userId === u.id), by = {};
+    mine.forEach(d => by[d.ml] = (by[d.ml] || 0) + 1);
+    return { u, n: mine.length, ml: mine.reduce((a, d) => a + d.ml, 0), by };
+  });
+}
+
+function renderDoping() {
+  const st = drinkStats().sort((a, b) => b.ml - a.ml);
+  const tot = st.reduce((a, x) => a + x.ml, 0), n = st.reduce((a, x) => a + x.n, 0), max = Math.max(1, ...st.map(x => x.ml));
+  const my = st.find(x => x.u.id === me?.uid);
+  $("my-drinks").innerHTML = my ? `Du bisher: <b>${lit(my.ml)}</b> (${my.n} Bier${my.n === 1 ? "" : "e"})` : "";
+  $("drink-total").innerHTML = `<div class="banner" style="margin-bottom:8px">Gesamt: ${lit(tot)} · ${n} Bier${n === 1 ? "" : "e"}</div>`;
+  $("drink-board").innerHTML = st.map(x => `<div style="padding:10px 0;border-bottom:1px solid var(--bd)">
+    <div style="display:flex;align-items:center;gap:8px">${av(x.u, 28)}<b style="flex:1;min-width:0">${esc(uname(x.u))}</b><b class="warn">${lit(x.ml)}</b></div>
+    <div style="height:6px;background:#111418;border-radius:3px;margin:6px 0"><div style="height:100%;width:${x.ml / max * 100}%;background:#ffb300;border-radius:3px"></div></div>
+    <div class="mut" style="font-size:.8rem">${SIZES.filter(z => x.by[z]).map(z => `${x.by[z]}× ${lit(z)}`).join(" · ") || "Noch nichts getrunken"}</div></div>`).join("")
+    || `<p class="mut">Noch keine Spieler.</p>`;
 }
 
 function renderTxns() {
@@ -438,6 +488,18 @@ const A = {
   nav: d => { tab(d.tab); menu(false); window.scrollTo(0, 0); },
   menu: () => menu(),
   menuClose: () => menu(false),
+  async drink(d) {
+    const mine = users.find(u => u.id === me.uid);
+    await setDoc(doc(collection(db, "drinks")), { userId: me.uid, userName: uname(mine || { email: me.email }), ml: Number(d.ml), createdAt: serverTimestamp() });
+    toast(`🍺 ${lit(Number(d.ml))} gebucht – Prost!`);
+  },
+  async undoDrink() {
+    const ts = x => x.createdAt?.seconds ?? Date.now() / 1000;
+    const last = drinks.filter(x => x.userId === me.uid).sort((a, b) => ts(b) - ts(a))[0];
+    if (!last) return toast("Du hast noch nichts getrackt.", true);
+    await deleteDoc(doc(db, "drinks", last.id));
+    toast(`${lit(last.ml)} rückgängig gemacht.`);
+  },
   login: () => signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value),
   logout: () => { menu(false); return signOut(auth); },
   async register() {
