@@ -68,6 +68,13 @@ button{cursor:pointer;border:none;color:#fff;font-weight:800;border-radius:6px}
 .stat{display:inline-block;padding:4px 12px;border-radius:12px;font-size:.8rem;font-weight:800}
 .stat.go{background:rgba(0,200,83,.15);color:var(--green)}.stat.stop{background:rgba(213,0,0,.15);color:#ff5252}
 .sub{font-size:.75rem;color:var(--mut);text-transform:uppercase;font-weight:800;letter-spacing:.04em;margin:18px 0 8px;padding-top:14px;border-top:1px solid var(--bd)}
+.faq{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:0 14px;margin-bottom:10px}
+.faq summary{padding:14px 0;font-weight:800;color:#fff;font-size:.95rem}
+.faq p,.faq li{font-size:.9rem;line-height:1.45;color:#cfd8dc}
+.faq ol,.faq ul{padding-left:20px;margin-bottom:12px}.faq li{margin-bottom:6px}
+.faq .wt{padding:10px 0;border-top:1px solid var(--bd)}
+.faq .wt p{margin:4px 0 0}
+.chip{display:inline-block;background:rgba(0,200,83,.15);color:var(--green);border-radius:10px;padding:2px 8px;font-size:.72rem;font-weight:800;margin-left:6px;white-space:nowrap}
 .banner{background:linear-gradient(90deg,#e2001a,#8a0010);padding:12px;border-radius:8px;font-weight:800;text-align:center;text-transform:uppercase;margin-bottom:12px}
 .lb{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd);font-size:.95rem}
 .lb:last-child{border:0}.lb .n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -127,6 +134,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <a class="nav" data-act="nav" data-tab="stats">📊 Statistik</a>
     <a class="nav" data-act="nav" data-tab="analytics">📈 Auswertung</a>
     <a class="nav" data-act="nav" data-tab="doping">🍺 Doping</a>
+    <a class="nav" data-act="nav" data-tab="faq">❓ Wetten FAQ</a>
     <a class="nav hidden" id="nav-admin" data-act="nav" data-tab="admin">👑 Verwaltung</a>
     <div style="flex:1"></div>
     <a class="nav" data-act="logout">🚪 Abmelden</a>
@@ -215,6 +223,69 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
       <div class="card"><h2>📊 Dashboard</h2><div id="drink-total"></div><div id="drink-board"></div></div>
     </div>
 
+    <!-- WETTEN FAQ -->
+    <div id="page-faq" class="hidden">
+      <div class="card"><h2>❓ Wetten FAQ</h2>
+        <p>So funktionieren Pferdewetten – kurz erklärt, nach der Broschüre „Wollen wir wetten?“ des Deutschen Galopp. Tipp auf eine Frage, dann klappt sie auf.</p></div>
+
+      <details class="faq" open><summary>🏇 Die Wettarten</summary>
+        <div class="wt"><b>Siegwette</b><span class="chip">ab 2 €</span><p>Dein Pferd muss Erster werden.</p></div>
+        <div class="wt"><b>Platzwette</b><span class="chip">ab 2 €</span><p>Dein Pferd muss Erster, Zweiter oder Dritter werden. Starten sieben oder weniger Pferde, zählen nur Platz 1 und 2.</p></div>
+        <div class="wt"><b>Sieg-Platz-Wette</b><span class="chip">ab 4 € (2 × 2 €)</span><p>Die Kombination aus Sieg- und Platzwette. Du setzt also auf beide Arten gleichzeitig.</p></div>
+        <div class="wt"><b>2er-Wette</b><span class="chip">ab 1 €</span><p>Deine zwei Pferde müssen in genau der getippten Reihenfolge ins Ziel kommen.</p></div>
+        <div class="wt"><b>3er- und 4er-Wette</b><span class="chip">ab 0,50 €</span><p>Wie die 2er-Wette, nur mit drei beziehungsweise vier Pferden, die in exakter Reihenfolge einlaufen müssen.</p></div>
+        <div class="wt"><b>2 aus 4</b><span class="chip">ab 3 €</span><p>Deine beiden Pferde müssen unter den ersten vier im Ziel sein. Die Reihenfolge ist egal. Auf dem Wettschein trägst du beide Nummern bei Rang I ein.</p></div>
+        <div class="wt"><b>Kombi</b><p>Mit der Spalte „Kombi“ auf dem Wettschein wird die Reihenfolge bei 2er-, 3er- und 4er-Wetten beliebig. Das erhöht deine Chancen, aber auch den Einsatz, weil jede mögliche Reihenfolge einzeln zählt. Beispiel: sechs Kombinationen × 0,50 € = 3 €.</p></div>
+      </details>
+
+      <details class="faq"><summary>✍️ Wettschein ausfüllen</summary>
+        <ol>
+          <li><b>Wettart</b> ankreuzen, also Sieg, Platz, Sieg-Platz, Zweier, Dreier, Vierer oder 2 aus 4.</li>
+          <li><b>Einsatz in Euro</b> markieren.</li>
+          <li><b>Rennen</b>: die Nummer des Rennens markieren.</li>
+          <li><b>Pferde</b>: die Startnummern in die Zeilen Rang I bis IV eintragen.</li>
+        </ol>
+        <p><b>Wichtig:</b> Immer nur einen Strich machen, keine Kreuzchen!</p>
+        <p>Alternativ gehst du einfach zum Wettschalter und sagst die Wette an (siehe unten).</p>
+      </details>
+
+      <details class="faq"><summary>🗣️ Wette ansagen</summary>
+        <p>An jeder Kasse nennst du <b>Wettart, Pferdenummer(n) und Einsatz</b>. Bei der Viererwette gibt es zusätzlich „Quick Pick“: Der Computer wählt die Pferde für dich, du nennst nur deinen Einsatz (ab 2 €).</p>
+      </details>
+
+      <details class="faq"><summary>📈 Quoten, Favorit und Außenseiter</summary>
+        <p>Auf den Monitoren siehst du die <b>Eventualquoten</b>: Sie zeigen, was du bei einer getroffenen Siegwette für 1 € Einsatz gewinnen würdest. Sie ändern sich laufend, je nachdem, wie viel auf die einzelnen Pferde gesetzt wird.</p>
+        <ul>
+          <li><b>Favorit:</b> das am meisten gewettete Pferd mit der niedrigsten Quote.</li>
+          <li><b>Außenseiter:</b> weniger gewettete Pferde mit hoher Quote.</li>
+        </ul>
+        <p>👉 In dieser App trägst du die Quote ein, die du am Monitor für dein Pferd siehst.</p>
+      </details>
+
+      <details class="faq"><summary>🧾 Wettquittung und Gewinn</summary>
+        <p>Auf der Quittung stehen Rennort, Datum, Nummer des Rennens, Wettart, deine Pferde, Grundeinsatz, Gesamtsumme, Zeitpunkt der Wette und die Quittungsnummer.</p>
+        <ul>
+          <li>Prüfe die Quittung <b>direkt am Schalter</b>, dann kannst du Fehler sofort reklamieren.</li>
+          <li>Gewinne holst du an jedem Schalter mit der Quittung ab. Danach wendest du dich innerhalb von <b>31 Tagen</b> an einen deutschen Rennverein oder eine Wettstar-Annahmestelle.</li>
+        </ul>
+      </details>
+
+      <details class="faq"><summary>ℹ️ Gut zu wissen</summary>
+        <ul>
+          <li><b>Nichtstarter:</b> Einsätze auf Pferde, die nicht am Rennen teilnehmen, werden zurückgezahlt.</li>
+          <li><b>Richterspruch:</b> Gewinne werden erst nach dem endgültigen Richterspruch ausgezahlt, einige Minuten nach dem Zieleinlauf.</li>
+          <li><b>Totalisator („Toto“):</b> Alle Wetteinsätze fließen zusammen in einen Topf. Ein Teil davon kommt der Ausrichtung der Rennen zugute.</li>
+          <li><b>Festkurswette:</b> Hier legt ein privater Buchmacher die Quote fest, wie bei einer Sportwette.</li>
+        </ul>
+      </details>
+
+      <div class="card" style="border-left:5px solid var(--green)"><h2>🔎 Noch Fragen?</h2>
+        <p>Weitere Fragen oder eine genauere Erklärung zum Ausfüllen des Wettscheins findest du hier:</p>
+        <a href="https://1x1-wettarten.1kcloud.com/eps-gBfA0sPyQ8yz7/#31" target="_blank" rel="noopener noreferrer" class="b" style="display:block;text-align:center;text-decoration:none;background:var(--green);color:#000">Zum Wett-Tutorial öffnen ↗</a>
+      </div>
+      <p class="mut" style="font-size:.75rem;text-align:center;margin:8px 0 16px">Teilnahme ab 18 Jahren. Glücksspiel kann süchtig machen. Infos: www.bzga.de</p>
+    </div>
+
     <!-- ADMIN -->
     <div id="page-admin" class="hidden">
       <div class="card" style="border-top:4px solid var(--orange)">
@@ -263,7 +334,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, increment, runTransaction, serverTimestamp, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "__FIREBASE_API_KEY__", // wird beim Deploy per GitHub Secret ersetzt
+  apiKey: "AIzaSyCyaBP_XbUTiYWPKYdzZYDogw-dYfn3pa8", // wird beim Deploy per GitHub Secret ersetzt
   authDomain: "kc-kegelclub.firebaseapp.com",
   projectId: "kc-kegelclub",
   storageBucket: "kc-kegelclub.firebasestorage.app",
@@ -432,7 +503,7 @@ document.addEventListener("keydown", e => { // Enter schickt das Formular ab
 });
 function tab(t) {
   document.querySelectorAll(".nav[data-tab]").forEach(e => e.classList.toggle("on", e.dataset.tab === t));
-  ["main", "ranking", "history", "stats", "analytics", "doping", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
+  ["main", "ranking", "history", "stats", "analytics", "doping", "faq", "admin"].forEach(p => $("page-" + p).classList.toggle("hidden", p !== t));
 }
 function menu(open) {
   const o = open ?? !$("drawer").classList.contains("open");
