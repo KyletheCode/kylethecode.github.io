@@ -622,7 +622,7 @@ function betCard(b) {
   if (b.exMultiplier === 0.5) badges += ` <span class="badge l">⚠️ EX ×0,5</span>`;
   let bl = "";
   if (b.status === "gewonnen" && b.bonus) bl = `<div style="font-size:.8rem;color:${b.bonus > 0 ? "var(--green)" : "#ff5252"}">${b.bonus > 0 ? "🎁 Bonus +" + eur(b.bonus) : "↩️ Rückzahlung " + eur(-b.bonus)}${b.capped > 0 ? " · gedeckelt (−" + eur(b.capped) + ")" : ""}</div>`;
-  if (b.fee) bl += `<div class="mut" style="font-size:.8rem">🎫 Wettgebühr ${eur(b.fee)}</div>`;
+  if (b.fee) bl += `<div class="mut" style="font-size:.8rem">💶 Wettgebühr ${eur(b.fee)}</div>`;
   if (b.type || b.kombi) badges += ` <span class="badge" style="background:#37474f">${esc(b.type || "")}${b.type && b.kombi ? " · " : ""}${b.kombi ? "Kombi" : ""}</span>`;
   let adm = "";
   const canEdit = b.status === "offen" && (isAdmin || (b.userId === me?.uid && race.isOpen && String(race.raceNumber) === String(b.raceNumber)));
