@@ -139,6 +139,18 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
     <div style="flex:1"></div>
     <a class="nav" data-act="logout">🚪 Abmelden</a>
   </nav>
+  <div id="edit-sheet" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div class="card" style="width:100%;max-width:380px;margin:0;border-top:4px solid var(--orange)">
+      <h2>✏️ Wette anpassen</h2>
+      <p id="ed-info"></p>
+      <div class="row">
+        <div><label for="ed-odds">Quote</label><input type="number" inputmode="decimal" step="any" min="1.01" id="ed-odds"></div>
+        <div><label for="ed-payout">Gewinn (€)</label><input type="number" inputmode="decimal" step="any" min="0" id="ed-payout"></div>
+      </div>
+      <p class="mut" style="font-size:.8rem;margin:-4px 0 12px">Gib eins von beiden ein, das andere wird berechnet.</p>
+      <div class="row"><button class="b" data-act="editSave">Speichern</button><button class="b" style="background:#282e36" data-act="editClose">Abbrechen</button></div>
+    </div>
+  </div>
   <div class="wrap">
     <!-- WETTEN -->
     <div id="page-main">
@@ -174,10 +186,25 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
           <div id="mult-info" class="hidden" style="margin-bottom:12px;padding:10px;border-radius:6px;font-weight:700;text-align:center"></div>
           <label for="bet-horse">Pferd / Tipp</label>
           <input id="bet-horse" placeholder="z. B. Pferd Nr. 3" maxlength="40">
+          <label for="bet-type">Wettart (nur zur Info)</label>
+          <select id="bet-type">
+            <option value="">– keine Angabe –</option>
+            <option>Siegwette</option><option>Platzwette</option><option>Sieg-Platz-Wette</option><option>Platz-Zwilling</option>
+            <option>2er-Wette</option><option>3er-Wette</option><option>4er-Wette</option><option>2 aus 4</option>
+          </select>
+          <p id="bet-type-hint" class="mut hidden" style="font-size:.8rem;margin:-4px 0 10px"></p>
+          <label style="cursor:pointer;color:#fff;display:flex;gap:8px;align-items:center;text-transform:none;margin:0 0 12px"><input type="checkbox" id="bet-kombi" style="width:18px;height:18px;margin:0"> Kombi (Reihenfolge beliebig)</label>
           <label for="bet-amount">Einsatz (€)</label>
           <input type="number" inputmode="decimal" step="0.01" min="0.01" id="bet-amount" placeholder="1,00">
-          <label for="bet-odds">Quote</label>
-          <input type="number" inputmode="decimal" step="0.1" min="1.01" id="bet-odds" placeholder="2.5">
+          <div id="fee-box" class="hidden">
+            <label for="bet-fee">Wettgebühr (€, optional)</label>
+            <input type="number" inputmode="decimal" step="0.01" min="0" id="bet-fee" placeholder="0,00">
+          </div>
+          <div class="row">
+            <div><label for="bet-odds">Quote</label><input type="number" inputmode="decimal" step="any" min="1.01" id="bet-odds" placeholder="2,5"></div>
+            <div><label for="bet-payout">Gewinn (€)</label><input type="number" inputmode="decimal" step="any" min="0" id="bet-payout" placeholder="z. B. 7,50"></div>
+          </div>
+          <p class="mut" style="font-size:.8rem;margin:-4px 0 12px">Trage <b>entweder</b> die Quote <b>oder</b> den Gewinn ein, den du bei Sieg ausgezahlt bekommst (inklusive Einsatz). Das andere Feld wird automatisch berechnet. Solange das Rennen offen ist, kannst du es an der Wette noch anpassen.</p>
           <div id="team-box" class="hidden" style="margin:6px 0 12px;background:#231d38;padding:10px;border-radius:6px;border:1px solid #3d2f66">
             <label style="cursor:pointer;color:#fff;margin:0;display:flex;align-items:center;gap:10px">
               <input type="checkbox" id="bet-team" style="width:18px;height:18px;margin:0"> 🤝 Team-Wette (×1,25, Bonus max. 5 €)</label>
@@ -232,15 +259,17 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
         <div class="wt"><b>Siegwette</b><span class="chip">ab 2 €</span><p>Dein Pferd muss Erster werden.</p></div>
         <div class="wt"><b>Platzwette</b><span class="chip">ab 2 €</span><p>Dein Pferd muss Erster, Zweiter oder Dritter werden. Starten sieben oder weniger Pferde, zählen nur Platz 1 und 2.</p></div>
         <div class="wt"><b>Sieg-Platz-Wette</b><span class="chip">ab 4 € (2 × 2 €)</span><p>Die Kombination aus Sieg- und Platzwette. Du setzt also auf beide Arten gleichzeitig.</p></div>
+        <div class="wt"><b>Platz-Zwilling</b><span class="chip">ab 1 €</span><p>Du tippst <b>zwei Pferde</b>, die in <b>beliebiger Reihenfolge beide unter den ersten drei</b> einlaufen müssen. Die Wette gibt es nur, wenn mindestens 8 Pferde starten. Auf dem Wettschein markierst du beide Pferde bei Rang I. Kombinierst du mehrere Pferde (Vollkombi), wird jedes mögliche Paar einzeln gewettet: Bei 5 Pferden sind das 10 Wetten, also 10 € bei 1 € Grundeinsatz.</p></div>
         <div class="wt"><b>2er-Wette</b><span class="chip">ab 1 €</span><p>Deine zwei Pferde müssen in genau der getippten Reihenfolge ins Ziel kommen.</p></div>
         <div class="wt"><b>3er- und 4er-Wette</b><span class="chip">ab 0,50 €</span><p>Wie die 2er-Wette, nur mit drei beziehungsweise vier Pferden, die in exakter Reihenfolge einlaufen müssen.</p></div>
         <div class="wt"><b>2 aus 4</b><span class="chip">ab 3 €</span><p>Deine beiden Pferde müssen unter den ersten vier im Ziel sein. Die Reihenfolge ist egal. Auf dem Wettschein trägst du beide Nummern bei Rang I ein.</p></div>
         <div class="wt"><b>Kombi</b><p>Mit der Spalte „Kombi“ auf dem Wettschein wird die Reihenfolge bei 2er-, 3er- und 4er-Wetten beliebig. Das erhöht deine Chancen, aber auch den Einsatz, weil jede mögliche Reihenfolge einzeln zählt. Beispiel: sechs Kombinationen × 0,50 € = 3 €.</p></div>
+        <p class="mut" style="font-size:.8rem;padding-bottom:12px">Nicht jede Rennbahn bietet alle Wettarten an, und der Mindesteinsatz kann abweichen. Das steht im jeweiligen Rennprogramm.</p>
       </details>
 
       <details class="faq"><summary>✍️ Wettschein ausfüllen</summary>
         <ol>
-          <li><b>Wettart</b> ankreuzen, also Sieg, Platz, Sieg-Platz, Zweier, Dreier, Vierer oder 2 aus 4.</li>
+          <li><b>Wettart</b> markieren, also Sieg, Platz, Sieg-Platz, Platz-Zwilling, Zweier, Dreier, Vierer oder 2 aus 4. Pro Wettschein nur eine Wettart.</li>
           <li><b>Einsatz in Euro</b> markieren.</li>
           <li><b>Rennen</b>: die Nummer des Rennens markieren.</li>
           <li><b>Pferde</b>: die Startnummern in die Zeilen Rang I bis IV eintragen.</li>
@@ -259,7 +288,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
           <li><b>Favorit:</b> das am meisten gewettete Pferd mit der niedrigsten Quote.</li>
           <li><b>Außenseiter:</b> weniger gewettete Pferde mit hoher Quote.</li>
         </ul>
-        <p>👉 In dieser App trägst du die Quote ein, die du am Monitor für dein Pferd siehst.</p>
+        <p>👉 In dieser App trägst du die Quote vom Monitor ein oder direkt den Gewinn, den du bei Sieg bekommst. Die App rechnet das jeweils andere aus. Solange das Rennen offen ist, kannst du beides an deiner Wette noch anpassen.</p>
       </details>
 
       <details class="faq"><summary>🧾 Wettquittung und Gewinn</summary>
@@ -281,7 +310,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:700;color:var(--red
 
       <div class="card" style="border-left:5px solid var(--green)"><h2>🔎 Noch Fragen?</h2>
         <p>Weitere Fragen oder eine genauere Erklärung zum Ausfüllen des Wettscheins findest du hier:</p>
-        <a href="https://1x1-wettarten.1kcloud.com/eps-gBfA0sPyQ8yz7/#31" target="_blank" rel="noopener noreferrer" class="b" style="display:block;text-align:center;text-decoration:none;background:var(--green);color:#000">Zum Wett-Tutorial öffnen ↗</a>
+        <a href="https://1x1-wettarten.1kcloud.com/eps-gBfA0sPyQ8yz7/#1" target="_blank" rel="noopener noreferrer" class="b" style="display:block;text-align:center;text-decoration:none;background:var(--green);color:#000">Zum Wett-Tutorial öffnen ↗</a>
       </div>
       <p class="mut" style="font-size:.75rem;text-align:center;margin:8px 0 16px">Teilnahme ab 18 Jahren. Glücksspiel kann süchtig machen. Infos: www.bzga.de</p>
     </div>
@@ -343,7 +372,7 @@ const firebaseConfig = {
 };
 // Nur für die Anzeige. Die echte Absicherung passiert in firestore.rules!
 const ADMIN_EMAIL = "m.tobias98@gmx.de";
-const MODES = { bonus: "Bier-Ex Info", penalty: "Risiko-Runde (−2 €)", buyin: "Not-Einkauf", team: "Team-Modus (×1,25)" };
+const MODES = { bonus: "Bier-Ex Info", penalty: "Risiko-Runde (−2 €)", buyin: "Not-Einkauf", team: "Team-Modus (×1,25)", fee: "Wettgebühr-Feld" };
 // Deckel für den Zusatzgewinn: Bier-Ex je Spieler & Rennen, Team je Wette (= je Person)
 const EX_CAP = 10, TEAM_CAP = 5, TEAM_FACTOR = 1.25;
 
@@ -447,6 +476,17 @@ function renderBuyin() {
   tick(); tmr = setInterval(tick, 250);
 }
 
+// Kurzerklärungen zur gewählten Wettart (nur Info, ändern nichts an der Berechnung)
+const WETTART_INFO = {
+  "Siegwette": "Dein Pferd wird Erster. Mindesteinsatz 2 €.",
+  "Platzwette": "Dein Pferd wird 1., 2. oder 3. (bei sieben oder weniger Pferden nur 1. oder 2.). Mindesteinsatz 2 €.",
+  "Sieg-Platz-Wette": "Sieg- und Platzwette kombiniert. Mindesteinsatz 4 € (2 × 2 €).",
+  "Platz-Zwilling": "Zwei Pferde in beliebiger Reihenfolge unter den ersten drei, nur ab 8 Startern. Mindesteinsatz 1 €.",
+  "2er-Wette": "Zwei Pferde in exakter Reihenfolge. Mindesteinsatz 1 €.",
+  "3er-Wette": "Drei Pferde in exakter Reihenfolge. Mindesteinsatz 0,50 €.",
+  "4er-Wette": "Vier Pferde in exakter Reihenfolge. Mindesteinsatz 0,50 €.",
+  "2 aus 4": "Beide Pferde unter den ersten vier, Reihenfolge egal. Mindesteinsatz 3 €."
+};
 const tx = fn => runTransaction(db, fn).catch(e => {
   if (/unavailable|offline|network|before all writes|deadline|aborted|failed-precondition/i.test(`${e.code} ${e.message}`))
     throw new Error("Verbindungsproblem – bitte erneut versuchen. Es wurde nichts gebucht.");
@@ -563,8 +603,10 @@ function renderRace() {
 }
 
 function renderModes() {
-  Object.keys(MODES).forEach(k => $("sp-" + k).classList.toggle("hidden", !modes[k]));
+  Object.keys(MODES).forEach(k => $("sp-" + k)?.classList.toggle("hidden", !modes[k]));
   $("team-box").classList.toggle("hidden", !modes.team);
+  $("fee-box").classList.toggle("hidden", !modes.fee);
+  if (!modes.fee) $("bet-fee").value = "";
   if (!modes.team) $("bet-team").checked = false;
   $("mode-btns").innerHTML = Object.entries(MODES).map(([k, l]) =>
     `<div class="srow"><span>${esc(l)}</span><button class="sw ${modes[k] ? "on" : ""}" data-act="mode" data-k="${k}" data-v="${modes[k] ? 0 : 1}" aria-label="${esc(l)}"></button></div>`).join("");
@@ -580,8 +622,13 @@ function betCard(b) {
   if (b.exMultiplier === 0.5) badges += ` <span class="badge l">⚠️ EX ×0,5</span>`;
   let bl = "";
   if (b.status === "gewonnen" && b.bonus) bl = `<div style="font-size:.8rem;color:${b.bonus > 0 ? "var(--green)" : "#ff5252"}">${b.bonus > 0 ? "🎁 Bonus +" + eur(b.bonus) : "↩️ Rückzahlung " + eur(-b.bonus)}${b.capped > 0 ? " · gedeckelt (−" + eur(b.capped) + ")" : ""}</div>`;
+  if (b.fee) bl += `<div class="mut" style="font-size:.8rem">🎫 Wettgebühr ${eur(b.fee)}</div>`;
+  if (b.type || b.kombi) badges += ` <span class="badge" style="background:#37474f">${esc(b.type || "")}${b.type && b.kombi ? " · " : ""}${b.kombi ? "Kombi" : ""}</span>`;
   let adm = "";
-  if (isAdmin) adm = `<div class="a row">${b.status === "offen" ? `<button class="s w" data-act="win" data-id="${esc(b.id)}">✓ Sieg</button><button class="s l" data-act="lose" data-id="${esc(b.id)}">✗ Niederlage</button>` : ""}<button class="s" data-act="del" data-id="${esc(b.id)}">🗑️ Stornieren</button></div>`;
+  const canEdit = b.status === "offen" && (isAdmin || (b.userId === me?.uid && race.isOpen && String(race.raceNumber) === String(b.raceNumber)));
+  const editBtn = canEdit ? `<button class="s u" data-act="editBet" data-id="${esc(b.id)}">✏️ Quote / Gewinn anpassen</button>` : "";
+  if (isAdmin) adm = `<div class="a row">${editBtn}${b.status === "offen" ? `<button class="s w" data-act="win" data-id="${esc(b.id)}">✓ Sieg</button><button class="s l" data-act="lose" data-id="${esc(b.id)}">✗ Niederlage</button>` : ""}<button class="s" data-act="del" data-id="${esc(b.id)}">🗑️ Stornieren</button></div>`;
+  else if (editBtn) adm = `<div class="a row">${editBtn}</div>`;
   return `<div class="bet ${esc(b.status)}"><div class="r"><b>${esc(b.horse)}</b>${st}</div>
     <div class="r mut"><span style="display:inline-flex;align-items:center;gap:6px">${av(users.find(u => u.id === b.userId), 22)}${esc(b.userName || (b.userEmail || "").split("@")[0])}${badges}</span><span>${eur(b.amount)} × ${Number(b.finalOdds).toFixed(2)}</span></div>${bl}${adm}</div>`;
 }
@@ -601,7 +648,7 @@ function renderBets() {
 
 function renderAch() {
   const pick = (arr, f, max) => arr.reduce((m, b) => !m || (max ? f(b) > f(m) : f(b) < f(m)) ? b : m, null);
-  const prof = b => r2((b.payout ?? b.possibleWin) - b.amount);
+  const prof = b => r2((b.payout ?? b.possibleWin) - b.amount - (b.fee || 0));
   const bname = b => esc(b.userName || (b.userEmail || "").split("@")[0]);
   const betCell = (cls, title, b, val) => `<div class="ach ${cls}"><div class="t">${title}</div>` + (b
     ? `<div class="v">${val(b)}</div><div>${av(users.find(u => u.id === b.userId), 20)} <b>${bname(b)}</b></div><div class="mut">${esc(b.horse)} · Rennen ${esc(b.raceNumber)}</div>`
@@ -626,7 +673,7 @@ function renderAch() {
   const odds = b => Number(b.odds), pair = (a, b) => `<div class="ach-pair">${a}${b}</div>`;
   $("achievements").innerHTML =
     pair(betCell("g", "💰 Größter Gewinn", pick(won, prof, true), b => "+" + eur(prof(b))),
-         betCell("r", "💸 Größter Verlust", pick(lost, b => b.amount, true), b => "−" + eur(b.amount))) +
+         betCell("r", "💸 Größter Verlust", pick(lost, b => b.amount + (b.fee || 0), true), b => "−" + eur(b.amount + (b.fee || 0)))) +
     pair(betCell("g", "🚀 Höchste Quote", pick(bets, odds, true), b => odds(b).toFixed(2)),
          betCell("r", "🐢 Niedrigste Quote", pick(bets, odds, false), b => odds(b).toFixed(2))) +
     pair(tipCell("g", "🎯 Meiste Tipps", true), tipCell("r", "🫥 Wenigste Tipps", false)) +
@@ -675,7 +722,7 @@ function series(u, races) {
   const pts = [{ x: "Start", y: r2(y) }];
   races.forEach(r => {
     bets.filter(b => b.userId === u.id && String(b.raceNumber) === r)
-      .forEach(b => { y += b.status === "gewonnen" ? (b.payout ?? b.possibleWin) - b.amount : -b.amount; });
+      .forEach(b => { y += (b.status === "gewonnen" ? (b.payout ?? b.possibleWin) - b.amount : -b.amount) - (b.fee || 0); });
     mine.filter(t => String(t.raceNumber) === r).forEach(t => { y += t.delta; });
     pts.push({ x: r, y: r2(y) });
   });
@@ -732,10 +779,30 @@ function renderAnalytics() {
 function preview() {
   const a = parseFloat($("bet-amount").value), o = parseFloat($("bet-odds").value);
   const mine = users.find(u => u.id === me?.uid), m = mine ? exOf(mine) : 1, team = modes.team && $("bet-team").checked;
+  const fee = modes.fee ? r2(parseFloat($("bet-fee").value) || 0) : 0, pay = a * o * m * (team ? TEAM_FACTOR : 1), net = r2(pay - a - fee);
   $("preview").textContent = a > 0 && o > 0
-    ? `Möglicher Gewinn: ${eur(a * o * m * (team ? TEAM_FACTOR : 1))}` + (m > 1 || team ? " (Bonusanteil gedeckelt)" : "") : "";
+    ? `Mögliche Auszahlung: ${eur(pay)} · nach Einsatz${fee ? " und Gebühr" : ""}: ${net >= 0 ? "+" : "−"}${eur(Math.abs(net))}` + (m > 1 || team ? " (Bonusanteil gedeckelt)" : "") : "";
 }
-document.addEventListener("input", e => { if (e.target.closest("#bet-form")) preview(); });
+// Quote <-> Gewinn: Das zuletzt bearbeitete Feld gilt, das andere wird berechnet (Gewinn = Einsatz × Quote)
+let oddsSrc = "odds", edSrc = "odds", editing = null;
+const round4 = v => String(Math.round(v * 10000) / 10000);
+function syncPair(a, oddsId, payId, src) {
+  const o = $(oddsId), p = $(payId);
+  if (src === "odds") { const v = parseFloat(o.value); p.value = a > 0 && v > 0 ? r2(a * v) : ""; }
+  else { const v = parseFloat(p.value); o.value = a > 0 && v > 0 ? round4(v / a) : ""; }
+}
+const readOdds = (amount, oddsId, payId, src) => src === "payout" ? parseFloat($(payId).value) / amount : parseFloat($(oddsId).value);
+document.addEventListener("input", e => {
+  const id = e.target.id;
+  if (id === "bet-odds" || id === "bet-payout") oddsSrc = id === "bet-odds" ? "odds" : "payout";
+  if (["bet-odds", "bet-payout", "bet-amount"].includes(id)) syncPair(parseFloat($("bet-amount").value), "bet-odds", "bet-payout", oddsSrc);
+  if (id === "ed-odds" || id === "ed-payout") { edSrc = id === "ed-odds" ? "odds" : "payout"; syncPair(editing?.amount, "ed-odds", "ed-payout", edSrc); }
+  if (e.target.closest("#bet-form")) preview();
+});
+$("bet-type").addEventListener("change", e => {
+  const h = $("bet-type-hint"), t = WETTART_INFO[e.target.value];
+  h.textContent = t || ""; h.classList.toggle("hidden", !t);
+});
 document.addEventListener("toggle", e => {
   const k = e.target.dataset?.race; if (k == null) return;
   e.target.open ? openRaces.add(k) : openRaces.delete(k);
@@ -747,6 +814,29 @@ const A = {
   nav: d => { tab(d.tab); menu(false); window.scrollTo(0, 0); },
   menu: () => menu(),
   menuClose: () => menu(false),
+  editBet(d) {
+    const b = bets.find(x => x.id === d.id); if (!b) return;
+    editing = b; edSrc = "odds";
+    $("ed-info").textContent = `${b.horse} · Einsatz ${eur(b.amount)}`;
+    $("ed-odds").value = round4(b.odds); $("ed-payout").value = r2(b.amount * b.odds);
+    $("edit-sheet").classList.remove("hidden");
+  },
+  editClose() { editing = null; $("edit-sheet").classList.add("hidden"); },
+  async editSave() {
+    const b = editing; if (!b) return;
+    const odds = readOdds(b.amount, "ed-odds", "ed-payout", edSrc);
+    if (!(odds >= 1.01) || odds > 1000) return toast("Die Quote muss zwischen 1,01 und 1000 liegen.", true);
+    const bref = doc(db, "bets", b.id);
+    await tx(async t => {
+      const [bs, rs] = await Promise.all([t.get(bref), t.get(doc(db, "settings", "race"))]); // alle Reads zuerst
+      const cur = bs.data(), r = rs.data();
+      if (!cur || cur.status !== "offen") throw new Error("Die Wette ist nicht mehr offen.");
+      if (!isAdmin && !(r?.isOpen && String(r.raceNumber) === String(cur.raceNumber))) throw new Error("Das Rennen ist nicht mehr offen – die Wette kann nicht mehr angepasst werden.");
+      const finalOdds = odds * (cur.exMultiplier || 1);
+      t.update(bref, { odds, finalOdds, possibleWin: r2(cur.amount * finalOdds * (cur.isTeam ? TEAM_FACTOR : 1)) });
+    });
+    A.editClose(); toast(`Quote auf ${odds.toFixed(2)} angepasst.`);
+  },
   async timer() { // nur der zugewiesene Challenger (Rules prüfen das ebenfalls)
     unlockAudio();
     const running = buy.state === "running" && buy.startedAt && Date.now() < buy.startedAt.toMillis() + TIMER_SEC * 1000;
@@ -795,24 +885,26 @@ const A = {
 
   async place() {
     const horse = $("bet-horse").value.trim(), amount = r2(parseFloat($("bet-amount").value));
-    const odds = parseFloat($("bet-odds").value), team = modes.team && $("bet-team").checked;
-    if (!horse || !(amount > 0) || !(odds >= 1.01)) return toast("Bitte Tipp, Einsatz und Quote (≥ 1,01) korrekt ausfüllen.", true);
-    if (!confirm(`${eur(amount)} auf "${horse}" setzen?`)) return;
+    const odds = readOdds(amount, "bet-odds", "bet-payout", oddsSrc), team = modes.team && $("bet-team").checked;
+    const fee = modes.fee ? r2(parseFloat($("bet-fee").value) || 0) : 0, type = $("bet-type").value, kombi = $("bet-kombi").checked;
+    if (fee < 0 || fee > 100) return toast("Die Wettgebühr muss zwischen 0 und 100 € liegen.", true);
+    if (!horse || !(amount > 0) || !(odds >= 1.01)) return toast("Bitte Tipp, Einsatz und Quote oder Gewinn ausfüllen (Quote mindestens 1,01).", true);
+    if (!confirm(`${eur(amount)}${fee ? " + " + eur(fee) + " Gebühr" : ""} auf "${horse}" setzen?`)) return;
     const uref = doc(db, "users", me.uid), bref = doc(collection(db, "bets"));
     const num = await tx(async t => {
       const [rs, us] = await Promise.all([t.get(doc(db, "settings", "race")), t.get(uref)]); // alle Reads zuerst
       const r = rs.data(), u = us.data();
       if (!r?.isOpen) throw new Error("Es ist kein Rennen offen!");
-      if (!u || u.balance < amount) throw new Error("Nicht genug Guthaben!");
+      if (!u || u.balance < amount + fee) throw new Error("Nicht genug Guthaben (Einsatz + Gebühr)!");
       const ex = u.exRace != null && String(u.exRace) === String(r.raceNumber) ? (u.oddsMultiplier || 1) : 1, finalOdds = odds * ex;
-      t.update(uref, { balance: r2(u.balance - amount) });
+      t.update(uref, { balance: r2(u.balance - amount - fee) });
       t.set(bref, { raceNumber: String(r.raceNumber), userId: me.uid, userName: uname(u), horse, amount, odds,
-        finalOdds, exMultiplier: ex, isTeam: !!team, possibleWin: r2(amount * finalOdds * (team ? TEAM_FACTOR : 1)),
+        finalOdds, exMultiplier: ex, isTeam: !!team, fee, type, kombi, possibleWin: r2(amount * finalOdds * (team ? TEAM_FACTOR : 1)),
         status: "offen", createdAt: serverTimestamp() });
       return r.raceNumber;
     });
-    ["bet-horse", "bet-amount", "bet-odds"].forEach(i => $(i).value = "");
-    $("bet-team").checked = false; preview();
+    oddsSrc = "odds"; ["bet-horse", "bet-amount", "bet-fee", "bet-odds", "bet-payout"].forEach(i => $(i).value = "");
+    $("bet-team").checked = false; $("bet-kombi").checked = false; preview();
     toast(`Wette für Rennen ${num} abgegeben!`);
   },
 
@@ -847,7 +939,7 @@ const A = {
     await tx(async t => {
       const b = (await t.get(bref)).data();
       if (!b) throw new Error("Wette existiert nicht mehr!");
-      const won = b.status === "gewonnen", upd = { balance: increment(won ? b.amount - (b.payout ?? b.possibleWin) : b.amount) };
+      const won = b.status === "gewonnen", upd = { balance: increment(b.amount + (b.fee || 0) - (won ? (b.payout ?? b.possibleWin) : 0)) };
       if (won) { upd.bonusOwed = increment(-(b.bonus || 0)); if (b.exGranted) upd["exUsed." + exKey(b)] = increment(-b.exGranted); }
       t.update(doc(db, "users", b.userId), upd);
       t.delete(bref);
